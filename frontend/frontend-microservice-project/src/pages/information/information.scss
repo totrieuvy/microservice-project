@@ -1,0 +1,61 @@
+$vietcap-green: #008000;
+$text-light-gray: #6b7280;
+$border-color: #e5e7eb;
+
+.Information {
+  &__title {
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    color: #374151;
+  }
+
+  &__card {
+    background: white;
+    padding: 32px 30px;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.07);
+  }
+
+  &__row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid $border-color;
+
+    &:last-child {
+      margin-bottom: 0;
+      border-bottom: none;
+    }
+    font-size: 16px;
+  }
+
+  &__label {
+    font-weight: 500;
+    color: $text-light-gray;
+    width: 150px;
+    flex-shrink: 0;
+  }
+
+  &__value {
+    font-weight: 600;
+    text-align: right;
+    flex-grow: 1;
+  }
+
+  &__status {
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 6px;
+
+    &.active {
+      color: $vietcap-green;
+      background-color: rgba(0, 128, 0, 0.1);
+    }
+    &.inactive {
+      color: red;
+      background-color: rgba(255, 0, 0, 0.1);
+    }
+  }
+}

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Your OTP Code</title>
+</head>
+
+<body style="margin:0; padding:0; background-color:#f4f4f4; font-family:Arial, sans-serif;">
+
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="padding:20px 0;">
+    <tr>
+        <td align="center">
+
+            <!-- Card -->
+            <table role="presentation" width="450" cellspacing="0" cellpadding="0"
+                   style="background:#ffffff; border-radius:10px; padding:25px; box-shadow:0 4px 10px rgba(0,0,0,0.1);">
+
+                <!-- Logo -->
+                <tr>
+                    <td align="center" style="padding-bottom:20px;">
+                        <img src="https://cafef1.mediacdn.vn/LOGO/VCI_20230518091904.png"
+                             alt="Logo" width="160"
+                             style="display:block; margin:auto;">
+                    </td>
+                </tr>
+
+                <!-- Title -->
+                <tr>
+                    <td style="text-align:center; padding-bottom:10px;">
+                        <h2 style="margin:0; font-size:22px; color:#333333;">
+                            Hello <span th:text="${name}"></span>,
+                        </h2>
+                    </td>
+                </tr>
+
+                <!-- Description -->
+                <tr>
+                    <td style="text-align:center; color:#555555; font-size:15px; padding-bottom:15px;">
+                        Here is your verification code:
+                    </td>
+                </tr>
+
+                <!-- OTP Box -->
+                <tr>
+                    <td align="center" style="padding-bottom:25px;">
+                        <div style="
+                            font-size:32px;
+                            font-weight:bold;
+                            color:#ff6600;
+                            letter-spacing:4px;
+                            padding:12px 20px;
+                            border:2px dashed #ff6600;
+                            display:inline-block;
+                            border-radius:8px;
+                        " th:text="${otp}">
+                        </div>
+                    </td>
+                </tr>
+
+                <!-- Footer text -->
+                <tr>
+                    <td style="text-align:center; color:#777777; font-size:14px; padding-bottom:5px;">
+                        This OTP is valid for <b>10 minutes</b>.
+                    </td>
+                </tr>
+
+                <tr>
+                    <td style="text-align:center; color:#999999; font-size:13px; padding-top:10px;">
+                        If you didn’t request this code, please ignore this email.
+                    </td>
+                </tr>
+
+                <tr>
+                    <td align="center" style="padding-top:20px;">
+                        <a th:href="'http://localhost:5173/verify-otp?token=' + ${token}"
+                           style="background:#ff6600; padding:12px 24px; color:#fff;
+                  text-decoration:none; border-radius:6px; font-size:16px;">
+                            Activate Account
+                        </a>
+                    </td>
+                </tr>
+
+            </table>
+
+        </td>
+    </tr>
+</table>
+
+</body>
+</html>

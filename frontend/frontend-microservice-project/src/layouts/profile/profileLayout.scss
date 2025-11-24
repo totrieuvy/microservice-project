@@ -1,0 +1,26 @@
+.ProfilePage {
+  display: flex;
+  gap: 28px;
+  padding: 32px;
+  min-height: calc(100vh - 100px);
+  background: #f5f6f7;
+
+  &__panel {
+    width: 260px;
+    flex-shrink: 0;
+  }
+
+  &__content {
+    flex: 1;
+    background: #fff;
+    padding: 32px;
+    border-radius: 18px;
+    box-shadow: 0 8px 35px rgba(0, 0, 0, 0.08);
+    min-height: 400px;
+
+    /* GIÚP NỘI DUNG GIỮA ĐẸP HƠN */
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+}

@@ -1,0 +1,189 @@
+$vietcap: #00ff00;
+
+.Header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+
+  &__left {
+    &__logo {
+      width: 150px;
+      height: auto;
+    }
+  }
+
+  &__middle {
+    &__ul {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+
+      &__li {
+        list-style: none;
+
+        &__link {
+          text-decoration: none;
+          color: #333;
+          font-weight: 500;
+          transition: 0.2s ease;
+          font-size: 1.2rem;
+
+          &:hover {
+            color: $vietcap;
+            text-decoration: underline;
+          }
+
+          &.active {
+            color: $vietcap;
+            font-weight: 600;
+          }
+        }
+      }
+    }
+  }
+
+  &__right {
+    button {
+      padding: 10px 22px;
+      background: #000; // nền đen sang
+      color: white;
+      border: none;
+      outline: none;
+      font-size: 16px;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: 0.25s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+
+      &:hover {
+        background: $vietcap;
+        color: #000;
+        box-shadow: 0 4px 12px rgba(0, 255, 42, 0.4);
+        transform: translateY(-2px);
+      }
+
+      &:active {
+        transform: translateY(0);
+        box-shadow: none;
+      }
+    }
+
+    &__welcomeBtn {
+      background: transparent;
+      border: none;
+      color: #00ff2a;
+      font-weight: 600;
+      cursor: pointer;
+    }
+  }
+}
+
+/* ===== DROPDOWN ===== */
+.Header__right__dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+/* Menu thả xuống */
+.Header__right__menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  background: #ffffff;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+
+  /* 💯 Chiều ngang bằng nút Welcome */
+  width: 100%;
+  min-width: 180px;
+
+  padding: 8px 0;
+  z-index: 20;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.08);
+
+  display: flex;
+  flex-direction: column;
+}
+
+/* Item trong dropdown */
+.Header__right__menu .menu-item {
+  padding: 10px 15px;
+  cursor: pointer;
+  font-size: 14px;
+
+  /* 💯 Căn giữa chữ */
+  text-align: center;
+}
+
+.Header__right__menu .menu-item:hover {
+  background: #f5f5f5;
+}
+
+.Header__right__menu .logout {
+  color: red;
+}
+
+/* ===== RESPONSIVE ===== */
+/* 📱 Mobile small (iPhone SE, Android small) */
+@media (max-width: 360px) {
+  .Header__right__menu {
+    min-width: 140px;
+    max-width: 180px;
+  }
+
+  .Header__right__menu .menu-item {
+    font-size: 13px;
+    padding: 8px 10px;
+  }
+}
+
+/* 📱 Mobile phổ thông (iPhone 11, 12, 13, Samsung) */
+@media (max-width: 480px) {
+  .Header__right__menu {
+    min-width: 150px;
+    max-width: 200px;
+  }
+
+  .Header__right__menu .menu-item {
+    font-size: 14px;
+  }
+}
+
+/* 📱📲 Tablet dọc */
+@media (max-width: 768px) {
+  .Header__right__menu {
+    min-width: 170px;
+    max-width: 230px;
+  }
+
+  .Header__right__menu .menu-item {
+    font-size: 14px;
+    padding: 10px 12px;
+  }
+}
+
+/* 🖥️ Tablet ngang / Laptop nhỏ */
+@media (max-width: 1024px) {
+  .Header__right__menu {
+    min-width: 180px;
+    max-width: 240px;
+  }
+}
+
+/* 🖥️ Laptop lớn / màn hình rộng */
+@media (min-width: 1440px) {
+  .Header__right__menu {
+    min-width: 200px;
+    max-width: 260px;
+  }
+
+  .Header__right__menu .menu-item {
+    font-size: 16px;
+  }
+}
