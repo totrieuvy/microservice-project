@@ -1,0 +1,45 @@
+.HamsterPage {
+  padding: 20px;
+
+  h2 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 700;
+  }
+}
+
+.HamsterName {
+  margin-bottom: 12px;
+  font-size: 18px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.HamsterInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+}
+
+.label {
+  font-weight: 600;
+  color: #333;
+}
+
+.value {
+  color: #555;
+}
+
+.HamsterDetail p {
+  margin: 6px 0;
+}
+
+.HamsterDetail span {
+  font-weight: 600;
+}

@@ -76,7 +76,7 @@ spring:
         - id: grooming-service
           uri: lb://grooming-service
           predicates:
-            - Path=/api/booking/**
+            - Path=/api/services/**
 
 eureka:
   client:

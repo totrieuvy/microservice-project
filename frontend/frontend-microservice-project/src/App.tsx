@@ -8,6 +8,7 @@ const ProfilePage = lazy(() => import("./layouts/profile/profileLayout"));
 const Register = lazy(() => import("./pages/authentication/register/register"));
 const VerifyOtp = lazy(() => import("./pages/authentication/verify-otp/verifyOtp"));
 const Information = lazy(() => import("./pages/information/information"));
+const Hamster = lazy(() => import("./pages/hamster/hamster"));
 
 const decodeTokenSafe = (rawToken: string | null) => {
   if (!rawToken) return null;
@@ -82,6 +83,25 @@ const App = () => {
                 {
                   index: true,
                   element: <Information />,
+                },
+              ],
+            },
+          ],
+        },
+        {
+          element: <PrivateRouteUser />,
+          children: [
+            {
+              path: "hamsters",
+              element: (
+                <Suspense fallback={<div>Loading...</div>}>
+                  <ProfilePage />
+                </Suspense>
+              ),
+              children: [
+                {
+                  index: true,
+                  element: <Hamster />,
                 },
               ],
             },

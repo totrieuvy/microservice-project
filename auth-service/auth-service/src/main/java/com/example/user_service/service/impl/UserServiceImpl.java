@@ -1,6 +1,8 @@
 package com.example.user_service.service.impl;
 
-import com.example.user_service.config.ApiResponse;
+//import com.example.user_service.config.ApiResponse;
+import com.example.common.ApiResponse;
+
 import com.example.user_service.config.PasswordEncoderConfig;
 import com.example.user_service.dto.request.LoginRequest;
 import com.example.user_service.dto.request.RegisterRequest;
@@ -8,6 +10,7 @@ import com.example.user_service.dto.response.LoginResponse;
 import com.example.user_service.dto.response.RegisterResponse;
 import com.example.user_service.entity.User;
 import com.example.user_service.exception.EmailAlreadyExistsException;
+import com.example.user_service.exception.UserNotFoundException;
 import com.example.user_service.exception.WrongCredentialsException;
 import com.example.user_service.repository.UserRepository;
 import com.example.user_service.service.UserService;
@@ -28,28 +31,27 @@ public class UserServiceImpl implements UserService {
     private final RestTemplate restTemplate;
 
     @Override
-    public ApiResponse<LoginResponse> login(LoginRequest loginRequest) {
+    public LoginResponse login(LoginRequest loginRequest) {
 
         User user = userRepository.findUserByEmail(loginRequest.getEmail())
-                .orElseThrow(() -> new WrongCredentialsException("Email or password is incorrect!"));
+                .orElseThrow(() -> new UserNotFoundException());
 
         if (!user.getIsActive()) {
-            throw new WrongCredentialsException("Tài khoản chưa kích hoạt.");
+            throw new WrongCredentialsException("error.user_not_active");
         }
 
         boolean match = passwordEncoderConfig.passwordEncoder()
                 .matches(loginRequest.getPassword(), user.getPassword());
 
         if (!match) {
-            throw new WrongCredentialsException("Email or password is incorrect!");
+            throw new WrongCredentialsException("error.wrong_credentials");
         }
 
         String token = tokenService.generateToken(user);
 
-        LoginResponse loginResponse = new LoginResponse(token);
-
-        return ApiResponse.success("Login successfully!", loginResponse);
+        return new LoginResponse(token);
     }
+
 
     @Override
     public ApiResponse<String> verifyOtp(String token, String otp) {

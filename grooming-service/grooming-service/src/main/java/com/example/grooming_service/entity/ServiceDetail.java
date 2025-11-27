@@ -5,22 +5,18 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Entity
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "groomings")
-public class Grooming {
+@Entity
+@Table(name = "service_details")
+public class ServiceDetail {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String serviceName;
+    private Long parentServiceId;
 
-    private Double price;
-
-    private String description;
-
-    private Boolean isActive = true;
+    private Long childServiceId;
 }

@@ -22,6 +22,7 @@ function Register() {
   const [password, setPassword] = useState<string>("");
   const [confirmPassword, setConfirmPassword] = useState<string>("");
   const navigate = useNavigate();
+  const [loading, setLoading] = useState<boolean>(false);
 
   useEffect(() => {
     document.title = "Đăng ký";
@@ -29,9 +30,11 @@ function Register() {
 
   const handleRegister = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setLoading(true);
 
     if (password !== confirmPassword) {
       toast.error("Mật khẩu xác nhận không khớp!");
+      setLoading(false);
       return;
     }
 
@@ -41,6 +44,7 @@ function Register() {
       const res = await api.post<RegisterResponse>("/auth/register", payload);
 
       if (res.data.code === 200) {
+        setLoading(false);
         toast.success(res.data.message);
         navigate("/login");
       } else {
@@ -106,8 +110,15 @@ function Register() {
             />
           </div>
 
-          <button type="submit" className="Register__button">
-            Đăng ký
+          <button type="submit" className="Register__button" disabled={loading}>
+            {loading ? (
+              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                <div className="loading-spinner"></div>
+                Đang đăng ký...
+              </div>
+            ) : (
+              "Đăng ký"
+            )}
           </button>
         </form>
 

@@ -1,6 +1,6 @@
 package com.example.user_service.controller;
 
-import com.example.user_service.config.ApiResponse;
+import com.example.common.ApiResponse;
 import com.example.user_service.dto.request.LoginRequest;
 import com.example.user_service.dto.request.RegisterRequest;
 import com.example.user_service.dto.request.VerifyOtpRequest;
@@ -38,7 +38,8 @@ public class UserController {
 
     @PostMapping("/login")
     public ApiResponse<LoginResponse> login(@Valid @RequestBody LoginRequest loginRequest) {
-        return userService.login(loginRequest);
+        LoginResponse res = userService.login(loginRequest);
+        return ApiResponse.success("Login successfully!", res);
     }
 
     @PostMapping("/verify-otp")

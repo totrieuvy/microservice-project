@@ -7,6 +7,22 @@ $vietcap-green: #00ff2a;
   align-items: center;
   background: #f8f8f8;
 
+  .loading-spinner {
+    width: 16px;
+    height: 16px;
+    border: 3px solid #fff;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.9s linear infinite;
+    text-align: center;
+  }
+
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
   &__card {
     background: #fff;
     padding: 40px 45px;

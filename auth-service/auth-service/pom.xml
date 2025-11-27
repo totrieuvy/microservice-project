@@ -33,6 +33,13 @@
 
 	<dependencies>
 
+		<dependency>
+			<groupId>com.example</groupId>
+			<artifactId>common-lib</artifactId>
+			<version>1.0.0</version>
+		</dependency>
+
+
 		<!-- Web -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
