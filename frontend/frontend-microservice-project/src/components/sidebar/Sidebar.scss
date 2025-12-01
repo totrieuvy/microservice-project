@@ -1,0 +1,275 @@
+/* ===============================
+   SIDEBAR LAYOUT
+================================= */
+
+.layout-wrapper {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ===============================
+   SIDEBAR MAIN
+================================= */
+.sidebar {
+  width: 270px;
+  background: #ffffff;
+  border-right: 1px solid #ededed;
+  box-shadow: 2px 0 12px rgba(0, 0, 0, 0.05);
+  padding: 20px 0;
+  display: flex;
+  flex-direction: column;
+  transition: width 0.25s ease;
+  position: relative;
+  z-index: 10;
+
+  &.collapsed {
+    width: 80px;
+
+    .brand {
+      display: none;
+    }
+
+    /* Đảm bảo submenu bị ẩn khi collapsed */
+    .submenu {
+      display: none !important;
+    }
+
+    /* Ẩn text và căn giữa icon khi collapsed */
+    .menu-title {
+      justify-content: center;
+      .icon {
+        margin-right: 0;
+      }
+      .arrow {
+        display: none;
+      }
+      span:last-child {
+        display: none;
+      }
+    }
+
+    /* Điều chỉnh nút toggle */
+    .toggle-btn.bottom {
+      font-size: 0;
+      text-align: center;
+
+      &::after {
+        content: "➡️";
+        font-size: 16px;
+        font-weight: bold;
+      }
+    }
+  }
+}
+
+/* ===============================
+   HEADER / LOGO
+================================= */
+
+.sidebar-header {
+  text-align: center;
+  margin-bottom: 20px;
+  display: flex; /* Thêm display: flex để căn giữa logo */
+  justify-content: center; /* Đảm bảo logo luôn nằm giữa */
+  align-items: center;
+  flex-direction: column; /* Xếp logo và brand theo chiều dọc */
+  padding: 0 15px; /* Giảm padding ngang cho logo */
+
+  img {
+    width: 60px;
+    margin-bottom: 8px;
+  }
+
+  .brand {
+    display: block;
+    font-size: 17px;
+    font-weight: 700;
+    color: #ff6f00;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+}
+
+/* ===============================
+   MENU
+================================= */
+
+.menu-container {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 5px;
+
+  /* custom scrollbar */
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: #e8e8e8;
+    border-radius: 4px;
+  }
+}
+
+.menu-group {
+  margin-bottom: 5px; /* Giảm khoảng cách giữa các nhóm */
+}
+
+.menu-title {
+  padding: 12px 18px;
+  font-size: 16px;
+  color: #333;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  transition: 0.2s ease;
+  position: relative; /* Dùng để định vị mũi tên */
+
+  &:hover {
+    background: #f8f9fb;
+  }
+
+  &.link {
+    text-decoration: none;
+  }
+
+  &.active {
+    /* Style khi menu đang mở */
+    background: #fff3e0; /* Màu nền nổi bật */
+    color: #ff6f00;
+  }
+
+  .icon {
+    font-size: 22px;
+    margin-right: 12px;
+  }
+
+  .arrow {
+    /* Style cho mũi tên đóng/mở */
+    position: absolute;
+    right: 18px;
+    font-size: 10px;
+    transition: transform 0.2s ease;
+  }
+}
+
+/* ===============================
+   SUBMENU (SLIDE DOWN)
+================================= */
+
+.submenu {
+  padding-left: 50px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 6px;
+
+  /* Giữ animation slideDown */
+  animation: slideDown 0.25s ease forwards;
+
+  .submenu-item {
+    text-decoration: none;
+    color: #444;
+    font-size: 14px;
+    padding: 6px 0;
+    display: block;
+    transition: 0.2s ease;
+
+    &:hover {
+      color: #ff6f00;
+      text-decoration: underline;
+    }
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ===============================
+   BUTTONS (TOGGLE & LOGOUT)
+================================= */
+
+/* Style chung cho nút Toggle và Logout */
+.toggle-btn.bottom,
+.logout-btn {
+  border: none;
+  outline: none;
+  width: 85%;
+  margin: 10px auto; /* Điều chỉnh margin */
+  padding: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  border-radius: 10px;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  align-items: center;
+  transition: background 0.2s ease;
+}
+
+/* Nút Toggle */
+.toggle-btn.bottom {
+  background: #007bff; /* Màu xanh dương */
+  margin-top: 20px;
+  color: #fff;
+
+  &:hover {
+    background: #0056b3;
+  }
+}
+
+/* Nút Đăng xuất */
+.logout-btn {
+  background: #ff4d4f;
+  color: #fff;
+
+  &:hover {
+    background: #ff7875;
+  }
+
+  span:first-child {
+    font-size: 18px;
+  }
+}
+
+/* ===============================
+   CONTENT
+================================= */
+
+.content {
+  flex: 1;
+  background: #f7f8fa;
+  padding: 0;
+  overflow-y: auto;
+}
+
+/* ===============================
+   RESPONSIVE
+================================= */
+
+@media (max-width: 900px) {
+  .sidebar {
+    position: fixed;
+    height: 100%;
+    z-index: 999;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+
+    &.show {
+      transform: translateX(0);
+    }
+  }
+
+  .content {
+    padding-left: 0;
+  }
+}

@@ -8,23 +8,13 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.Date;
+import java.util.List;
 
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
 public class CreateComboGroomingResponse {
-
     private Long id;
     private String serviceName;
-
-    @Enumerated(EnumType.STRING)
-    private GroomingEnum type;
-    private Double basePrice;
-    private Integer discount;
     private Double finalPrice;
-    private String description;
-    private String imageUrl;
-    private Date startDate;
-    private Date endDate;
-    private Boolean isActive = true;
+    private List<CreateSingleGroomingResponse> children;
 }
+

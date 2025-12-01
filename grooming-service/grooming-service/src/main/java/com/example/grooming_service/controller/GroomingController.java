@@ -1,12 +1,15 @@
 package com.example.grooming_service.controller;
 
+import com.cloudinary.Api;
+import com.example.grooming_service.dto.CreateComboGroomingRequest;
 import com.example.grooming_service.dto.CreateComboGroomingResponse;
 import com.example.grooming_service.dto.CreateSingleGroomingRequest;
 import com.example.grooming_service.dto.CreateSingleGroomingResponse;
 import com.example.grooming_service.service.impl.GroomingServiceImpl;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.data.domain.Page;      // ✅ đúng
+import org.springframework.data.domain.Pageable;import org.springframework.web.bind.annotation.*;
 import com.example.common.ApiResponse;
 
 import java.util.List;
@@ -31,14 +34,41 @@ public class GroomingController {
         return ApiResponse.success("List of single grooming services", list);
     }
 
+    @GetMapping("/active")
+    public ApiResponse<Page<CreateSingleGroomingResponse>> getActiveServices(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "8") int size
+    ) {
+        return ApiResponse.success(
+                "Active services",
+                groomingService.getActiveServices(page, size)
+        );
+    }
+
+    @GetMapping("/{id}")
+    public ApiResponse<CreateSingleGroomingResponse> getServiceById(@PathVariable Long id) {
+        return ApiResponse.success(
+                "Service details",
+                groomingService.getServiceById(id)
+        );
+    }
 
     @PostMapping("/combos")
-    public ApiResponse<CreateComboGroomingResponse> createComboService() {
-        return null;
+    public ApiResponse<CreateComboGroomingResponse> createCombo(
+            @Valid @RequestBody CreateComboGroomingRequest req
+    ) {
+        return ApiResponse.success(
+                "Combo created",
+                groomingService.createComboService(req)
+        );
     }
 
     @GetMapping("/combos")
-    public ApiResponse<List<CreateComboGroomingResponse>> getAllComboServices() {
-        return null;
+    public ApiResponse<List<CreateComboGroomingResponse>> getAllCombos() {
+        return ApiResponse.success(
+                "All combos",
+                groomingService.getAllComboServices()
+        );
     }
+
 }

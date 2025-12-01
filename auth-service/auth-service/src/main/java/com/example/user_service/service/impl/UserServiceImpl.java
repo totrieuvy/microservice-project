@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -51,6 +52,36 @@ public class UserServiceImpl implements UserService {
 
         return new LoginResponse(token);
     }
+
+    @Override
+    public ApiResponse<List<User>> getAllAccountsExceptCurrent(String authHeader) {
+
+        if (!authHeader.startsWith("Bearer ")) {
+            return ApiResponse.error(401, "Invalid token format");
+        }
+
+        String jwt = authHeader.substring(7);
+
+        // Lấy ra user hiện tại từ token
+        User currentUser = tokenService.getAccountByToken(jwt);
+
+        if (currentUser == null) {
+            return ApiResponse.error(404, "User not found");
+        }
+
+        Long currentUserId = currentUser.getId();
+
+        // Lấy tất cả user
+        List<User> allUsers = userRepository.findAll();
+
+        // Loại user hiện tại
+        List<User> filteredUsers = allUsers.stream()
+                .filter(u -> !u.getId().equals(currentUserId))
+                .toList();
+
+        return ApiResponse.success("OK", filteredUsers);
+    }
+
 
 
     @Override

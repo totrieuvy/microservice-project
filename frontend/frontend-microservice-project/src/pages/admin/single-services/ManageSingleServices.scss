@@ -1,0 +1,96 @@
+.service-page {
+  padding: 16px;
+
+  h2 {
+    font-weight: 600;
+    margin-bottom: 16px;
+  }
+
+  .ant-table-tbody > tr > td {
+    vertical-align: middle !important;
+  }
+}
+
+/* Filters */
+.filters {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+/* Pagination */
+.pagination-box {
+  margin-top: 16px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* Thumbnail */
+.service-thumb {
+  width: 90px;
+  height: 65px;
+  object-fit: cover;
+  border-radius: 6px;
+}
+
+/* =================== BUTTON COLORS =================== */
+
+/* Blue (thêm dịch vụ, lưu) */
+.btn-blue {
+  background-color: #4a90e2 !important;
+  border: none !important;
+  color: white !important;
+  padding: 6px 16px;
+  border-radius: 6px;
+  font-weight: 600;
+}
+.btn-blue:hover {
+  background-color: #357ac9 !important;
+}
+
+/* Green (chi tiết) */
+.btn-green {
+  background-color: #42b983 !important;
+  border: none !important;
+  color: white !important;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-weight: 600;
+}
+.btn-green:hover {
+  background-color: #2e9d6f !important;
+}
+
+/* Orange (cập nhật) */
+.btn-orange {
+  background-color: #ff6f61 !important;
+  border: none !important;
+  color: white !important;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-weight: 600;
+}
+.btn-orange:hover {
+  background-color: #ff5147 !important;
+}
+
+/* Gray (cancel) */
+.btn-gray {
+  background-color: #999 !important;
+  color: white !important;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-weight: 600;
+  border: none !important;
+}
+.btn-gray:hover {
+  background-color: #777 !important;
+}
+
+/* Modal buttons */
+.modal-btns {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}

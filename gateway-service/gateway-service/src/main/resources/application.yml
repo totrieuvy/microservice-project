@@ -1,5 +1,5 @@
 server:
-  port: 8080
+  port: 8090
 
 spring:
   application:
@@ -41,7 +41,7 @@ spring:
         - id: auth-login
           uri: lb://auth-service
           predicates:
-            - Path=/api/auth/login
+            - Path=/api/auth/login, /api/auth/login/*
 
         - id: auth-verify-otp
           uri: lb://auth-service
@@ -61,7 +61,17 @@ spring:
         - id: user-register
           uri: lb://user-service
           predicates:
-            - Path=/api/auth/register/**
+            - Path=/api/auth/register, /api/auth/register/*
+
+        - id: auth-register
+          uri: lb://auth-service
+          predicates:
+            - Path=/api/auth/accounts, /api/auth/accounts/*
+
+        - id: user-register
+          uri: lb://user-service
+          predicates:
+            - Path=/api/auth/users/**
 
         - id: notification-service
           uri: lb://notification-service
@@ -76,7 +86,7 @@ spring:
         - id: grooming-service
           uri: lb://grooming-service
           predicates:
-            - Path=/api/services/**
+            - Path=/api/services, /api/services/**
 
 eureka:
   client:

@@ -1,5 +1,6 @@
 import { RouterProvider, createBrowserRouter, Navigate, Outlet } from "react-router-dom";
 import { Suspense, lazy } from "react";
+import ManageAccount from "./pages/admin/account/ManageAccount";
 
 const HomepageLayout = lazy(() => import("./layouts/homepage/homepageLayout"));
 const Homepage = lazy(() => import("./components/homepage/homepage"));
@@ -9,21 +10,85 @@ const Register = lazy(() => import("./pages/authentication/register/register"));
 const VerifyOtp = lazy(() => import("./pages/authentication/verify-otp/verifyOtp"));
 const Information = lazy(() => import("./pages/information/information"));
 const Hamster = lazy(() => import("./pages/hamster/hamster"));
+const Sidebar = lazy(() => import("./components/sidebar/Sidebar"));
+const GroomingService = lazy(() => import("./pages/grooming/grooming-page/GroomingService"));
+const GroomingDetail = lazy(() => import("./pages/grooming/grooming-page-detail/GroomingDetail"));
+const ManageSingleServices = lazy(() => import("./pages/admin/single-services/ManageSingleServices"));
+const ManageSingleServiceDetail = lazy(() => import("./pages/admin/single-services/ManageSingleServiceDetail"));
 
 const decodeTokenSafe = (rawToken: string | null) => {
   if (!rawToken) return null;
+
+  const token = rawToken.startsWith("Bearer ") ? rawToken.substring(7) : rawToken;
+
   try {
-    const payload = rawToken.split(".")[1];
-    return JSON.parse(atob(payload));
-  } catch {
+    const parts = token.split(".");
+    if (parts.length < 2) return null;
+
+    let payload = parts[1];
+
+    payload = payload.replace(/-/g, "+").replace(/_/g, "/");
+    while (payload.length % 4 !== 0) payload += "=";
+
+    const decoded = atob(payload);
+    return JSON.parse(decoded);
+  } catch (err) {
+    console.error("Decode token error:", err);
     return null;
   }
 };
 
+/* --------------------------------------------------------
+ *  FIX 2: Support all role formats (KEYCLOAK + CUSTOM)
+ * ------------------------------------------------------*/
+const getRolesFromTokenPayload = (payload): string[] => {
+  if (!payload) return [];
+
+  // Keycloak format
+  if (Array.isArray(payload?.realm_access?.roles)) {
+    return payload.realm_access.roles;
+  }
+
+  // Custom single role
+  if (typeof payload.role === "string") return [payload.role];
+  if (typeof payload.ROLE === "string") return [payload.ROLE];
+
+  // Array roles
+  if (Array.isArray(payload.roles)) return payload.roles;
+
+  // Other possible structures
+  if (Array.isArray(payload.authorities)) return payload.authorities;
+
+  return [];
+};
+
+/* --------------------------------------------------------
+ *  FIX 3: Private Route User
+ * ------------------------------------------------------*/
 function PrivateRouteUser() {
   const token = sessionStorage.getItem("token");
   const user = decodeTokenSafe(token);
-  if (!token || !user || user.role !== "USER") return <Navigate to="/login" replace />;
+  const roles = getRolesFromTokenPayload(user);
+
+  if (!token || !user || !roles.includes("USER")) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return <Outlet />;
+}
+
+/* --------------------------------------------------------
+ *  FIX 4: Private Route Admin
+ * ------------------------------------------------------*/
+function PrivateRouteAdmin() {
+  const token = sessionStorage.getItem("token");
+  const user = decodeTokenSafe(token);
+  const roles = getRolesFromTokenPayload(user);
+
+  if (!token || !user || !roles.includes("ADMIN")) {
+    return <Navigate to="/login" replace />;
+  }
+
   return <Outlet />;
 }
 
@@ -104,6 +169,59 @@ const App = () => {
                   element: <Hamster />,
                 },
               ],
+            },
+          ],
+        },
+        {
+          element: <PrivateRouteUser />,
+          children: [
+            {
+              path: "lich-lam-dep",
+              element: (
+                <Suspense fallback={<div>Loading...</div>}>
+                  <GroomingService />
+                </Suspense>
+              ),
+            },
+            {
+              path: "lich-lam-dep/:id",
+              element: (
+                <Suspense fallback={<div>Loading...</div>}>
+                  <GroomingDetail />
+                </Suspense>
+              ),
+            },
+          ],
+        },
+      ],
+    },
+
+    {
+      element: <PrivateRouteAdmin />,
+      children: [
+        {
+          path: "admin",
+          element: (
+            <Suspense fallback={<div>Loading...</div>}>
+              <Sidebar />
+            </Suspense>
+          ),
+          children: [
+            {
+              path: "dashboard",
+              element: <div>Admin Dashboard</div>,
+            },
+            {
+              path: "services",
+              element: <ManageSingleServices />,
+            },
+            {
+              path: "services/:id",
+              element: <ManageSingleServiceDetail />,
+            },
+            {
+              path: "accounts",
+              element: <ManageAccount />,
             },
           ],
         },

@@ -57,6 +57,8 @@ function Register() {
       } else {
         toast.error("Đã có lỗi xảy ra!");
       }
+    } finally {
+      setLoading(false);
     }
   };
 

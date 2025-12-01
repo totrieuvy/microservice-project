@@ -29,7 +29,8 @@ public class AuthenticationFilter implements GlobalFilter {
     private static final List<String> PUBLIC_API = List.of(
             "/api/auth/login",
             "/api/auth/register",
-            "/api/auth/verify-otp"
+            "/api/auth/verify-otp",
+            "/api/services"
     );
 
     @Override

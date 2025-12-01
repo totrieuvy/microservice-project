@@ -14,6 +14,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -53,6 +54,13 @@ public class UserController {
             @RequestHeader("Authorization") String authHeader
     ) {
         return userService.getCurrentUser(authHeader);
+    }
+
+    @GetMapping("/accounts")
+    public ApiResponse<List<User>> getAllAccountsExceptCurrent(
+            @RequestHeader("Authorization") String authHeader
+    ) {
+        return userService.getAllAccountsExceptCurrent(authHeader);
     }
 
 

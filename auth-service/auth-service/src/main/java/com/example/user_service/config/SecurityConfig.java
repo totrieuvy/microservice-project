@@ -8,23 +8,42 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 
+//@Configuration
+//@EnableWebSecurity
+//public class SecurityConfig {
+//
+//    @Bean
+//    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+//        return http
+//                .csrf(AbstractHttpConfigurer::disable) // Tắt CSRF vì đây là API
+//                .authorizeHttpRequests(auth -> auth
+//                        // Cho phép tất cả request đến /api/auth/**
+//                        .requestMatchers("/api/auth/**").permitAll()
+//                        // Bất kỳ request nào khác đều cần chứng thực
+//                        .anyRequest().authenticated()
+//                )
+//                // Cấu hình session management là STATELESS vì dùng JWT
+//                .sessionManagement(session -> session
+//                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+//                .build();
+//    }
+//}
+
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        return http
-                .csrf(AbstractHttpConfigurer::disable) // Tắt CSRF vì đây là API
+        http
+                .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        // Cho phép tất cả request đến /api/auth/**
-                        .requestMatchers("/api/auth/**").permitAll()
-                        // Bất kỳ request nào khác đều cần chứng thực
-                        .anyRequest().authenticated()
+                        .anyRequest().permitAll()  // CHO PHÉP TẤT CẢ
                 )
-                // Cấu hình session management là STATELESS vì dùng JWT
                 .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .build();
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                );
+
+        return http.build();
     }
 }
