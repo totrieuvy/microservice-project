@@ -1,0 +1,262 @@
+/* Payment Fail Styles */
+
+$error-color: #ff4d4f;
+$error-light: #ff7875;
+$error-bg: #fff1f0;
+$error-border: #ffccc7;
+
+.payment-wrapper {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  padding: 20px;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+
+  .payment-card {
+    background: white;
+    border-radius: 20px;
+    padding: 50px 40px;
+    max-width: 500px;
+    width: 100%;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+
+    &.fail {
+      border-top: 5px solid $error-color;
+    }
+
+    /* ANIMATION */
+    opacity: 0;
+    transform: translateY(30px) scale(0.95);
+
+    &.animate-in {
+      animation: slideUp 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+  }
+
+  /* ERROR ICON ANIMATION */
+  .error-circle {
+    width: 120px;
+    height: 120px;
+    margin: 0 auto 30px;
+    position: relative;
+
+    .error-background {
+      position: absolute;
+      width: 120px;
+      height: 120px;
+      background: $error-bg;
+      border-radius: 50%;
+      animation: pulse 0.8s ease-out;
+    }
+
+    .error-icon {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      display: block;
+      stroke-width: 3;
+      stroke: $error-color;
+      stroke-miterlimit: 10;
+      box-shadow: inset 0px 0px 0px $error-color;
+      animation: fill 0.4s ease-in-out 0.4s forwards, scale 0.3s ease-in-out 0.9s both;
+      position: relative;
+      z-index: 1;
+      background: white;
+
+      .error-circle-path {
+        stroke-dasharray: 166;
+        stroke-dashoffset: 166;
+        stroke-width: 3;
+        stroke-miterlimit: 10;
+        stroke: $error-color;
+        fill: white;
+        animation: stroke 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+      }
+
+      .error-cross {
+        transform-origin: 50% 50%;
+        stroke-dasharray: 48;
+        stroke-dashoffset: 48;
+        stroke-linecap: round;
+        stroke-width: 4;
+      }
+
+      .error-cross-left {
+        animation: stroke 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.8s forwards;
+      }
+
+      .error-cross-right {
+        animation: stroke 0.3s cubic-bezier(0.65, 0, 0.45, 1) 1s forwards;
+      }
+    }
+  }
+
+  .title {
+    font-size: 32px;
+    font-weight: 800;
+    color: $error-color;
+    margin-bottom: 12px;
+    animation: fadeIn 0.5s ease-in 0.3s both;
+  }
+
+  .subtitle {
+    font-size: 16px;
+    color: #666;
+    margin-bottom: 30px;
+    animation: fadeIn 0.5s ease-in 0.5s both;
+  }
+
+  .info-box {
+    background: $error-bg;
+    border: 2px solid $error-border;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 30px;
+    animation: fadeIn 0.5s ease-in 0.7s both;
+
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid $error-border;
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      .label {
+        font-weight: 600;
+        color: #555;
+      }
+
+      .value {
+        font-weight: 700;
+        color: #333;
+
+        &.error-text {
+          color: $error-color;
+        }
+      }
+    }
+  }
+
+  .action-buttons {
+    display: flex;
+    gap: 14px;
+    animation: fadeIn 0.5s ease-in 0.9s both;
+
+    button {
+      flex: 1;
+      padding: 14px 20px;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all 0.3s ease;
+
+      &:active {
+        transform: scale(0.98);
+      }
+    }
+
+    .btn-secondary {
+      background: #f5f5f5;
+      color: #555;
+      border: 2px solid #ddd;
+
+      &:hover {
+        background: #e8e8e8;
+        transform: translateY(-2px);
+      }
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, $error-color, $error-light);
+      color: white;
+      box-shadow: 0 4px 15px rgba(255, 77, 79, 0.3);
+
+      &:hover {
+        box-shadow: 0 6px 20px rgba(255, 77, 79, 0.4);
+        transform: translateY(-2px);
+      }
+    }
+  }
+}
+
+/* KEYFRAMES */
+@keyframes slideUp {
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes stroke {
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes scale {
+  0%,
+  100% {
+    transform: none;
+  }
+  50% {
+    transform: scale3d(1.1, 1.1, 1);
+  }
+}
+
+@keyframes fill {
+  100% {
+    box-shadow: inset 0px 0px 0px 60px $error-color;
+  }
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.3);
+    opacity: 0;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .payment-wrapper {
+    .payment-card {
+      padding: 40px 24px;
+    }
+
+    .title {
+      font-size: 26px;
+    }
+
+    .action-buttons {
+      flex-direction: column;
+    }
+  }
+}

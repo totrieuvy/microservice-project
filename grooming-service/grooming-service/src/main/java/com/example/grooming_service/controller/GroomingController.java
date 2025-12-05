@@ -34,6 +34,12 @@ public class GroomingController {
         return ApiResponse.success("List of single grooming services", list);
     }
 
+    @GetMapping("/detail/{id}")
+    public ApiResponse<CreateSingleGroomingResponse> getServiceDetailById(@PathVariable Long id) {
+        CreateSingleGroomingResponse response = groomingService.getServiceById(id);
+        return ApiResponse.success("Service details retrieved successfully", response);
+    }
+
     @GetMapping("/active")
     public ApiResponse<Page<CreateSingleGroomingResponse>> getActiveServices(
             @RequestParam(defaultValue = "0") int page,

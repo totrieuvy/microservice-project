@@ -1,313 +1,511 @@
-/* VARIABLES */
-:root {
-  --primary-color: #ff8c42; /* Cam san hô hiện đại */
-  --primary-hover: #ff7f2a;
-  --secondary-bg: #fffcf5; /* Màu kem nền nhẹ */
-  --text-dark: #2d3436;
-  --text-gray: #636e72;
-  --white: #ffffff;
-  --shadow-sm: 0 4px 6px rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 10px 20px rgba(0, 0, 0, 0.08);
-  --radius-card: 24px;
-  --radius-btn: 12px;
+/* GroomingService.scss — Cam đậm version */
+
+/* --------- Palette ---------- */
+$primary: #ff6f3c; /* Cam đậm */
+$primary-light: #ff8a60; /* Cam sáng */
+$primary-bg: #fff2eb; /* Nền cam nhẹ */
+$border: #ffd5c2; /* Viền nhạt */
+$text: #333;
+$success: #4caf50;
+$danger: #ff6b6b;
+$soft-bg: #fff9f6;
+
+/* ===========================================
+   WRAPPER
+=========================================== */
+.grooming-wrapper {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 26px 18px 60px;
+  font-family: "Inter", sans-serif;
+  color: $text;
 }
 
-.grooming-container {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 40px 20px;
-  background-color: var(--secondary-bg);
-  min-height: 100vh;
-  font-family: "Quicksand", "Segoe UI", sans-serif; /* Khuyên dùng font Quicksand nếu có */
+/* ===========================================
+   TITLE
+=========================================== */
+.step-title {
+  color: $primary;
+  font-weight: 700;
+  font-size: 24px;
+  margin-bottom: 18px;
+}
 
-  /* TITLE SECTION */
-  .header-section {
-    text-align: center;
-    margin-bottom: 40px;
+/* ===========================================
+   STEP 1 — SERVICES
+=========================================== */
 
-    .title {
-      font-size: 36px;
-      font-weight: 800;
-      color: var(--text-dark);
-      margin-bottom: 10px;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      background: linear-gradient(45deg, #ff8c42, #ffbc42);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
+.step1 {
+  .tab-buttons {
+    display: flex;
+    gap: 14px;
+    margin-bottom: 20px;
 
-    .subtitle {
-      color: var(--text-gray);
-      font-size: 16px;
+    button {
+      padding: 10px 18px;
+      background: $primary-bg;
+      border-radius: 999px;
+      border: 2px solid transparent;
+      color: $primary-light;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.2s;
+
+      &.active {
+        border-color: $primary;
+        background: lighten($primary-bg, 4%);
+        color: $primary;
+        box-shadow: 0px 6px 14px rgba(255, 111, 60, 0.18);
+      }
+
+      &:hover {
+        color: $primary;
+      }
     }
   }
 
-  /* CUSTOM ANT DESIGN TABS */
-  .ant-tabs-nav {
-    margin-bottom: 40px !important;
+  .service-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 22px;
+  }
 
-    &::before {
-      border-bottom: none !important; /* Xóa line gạch chân mặc định */
+  .service-card {
+    background: white;
+    border-radius: 14px;
+    border: 2px solid $border;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.05);
+    cursor: pointer;
+    overflow: hidden;
+    transition: 0.2s;
+
+    &:hover {
+      transform: translateY(-6px);
+      border-color: $primary;
+      box-shadow: 0 10px 28px rgba(255, 111, 60, 0.25);
     }
 
-    .ant-tabs-nav-wrap {
+    &.selected {
+      border-color: $primary;
+      border-width: 3px;
+      box-shadow: 0 10px 28px rgba(255, 111, 60, 0.35);
+    }
+
+    .service-img {
+      width: 100%;
+      height: 170px;
+      object-fit: cover;
+      background: $primary-bg;
+    }
+
+    .service-info {
+      padding: 16px;
+
+      h3 {
+        margin-bottom: 6px;
+        font-size: 16px;
+        font-weight: 700;
+      }
+
+      .price {
+        color: $primary;
+        font-weight: 700;
+        margin-bottom: 10px;
+      }
+
+      .combo-list {
+        color: #888;
+        padding-left: 16px;
+        font-size: 14px;
+      }
+    }
+  }
+}
+
+/* ===========================================
+   STEP 2 — WEEKLY SCHEDULE
+=========================================== */
+
+.step2 {
+  margin-top: 10px;
+
+  /* WEEK NAV */
+  .week-header {
+    text-align: center;
+    margin-bottom: 20px;
+
+    h3 {
+      color: $primary;
+      font-weight: 700;
+      font-size: 20px;
+    }
+  }
+
+  /* LEGEND */
+  .legend {
+    display: flex;
+    justify-content: center;
+    gap: 18px;
+    margin: 14px 0;
+    color: #555;
+
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 8px;
+    }
+
+    .free {
+      background: $success;
+    }
+    .selected {
+      background: $primary;
+    }
+    .full {
+      background: #ccc;
+    }
+  }
+
+  /* GRID */
+  .weekly-grid {
+    display: grid;
+    grid-template-columns: 120px repeat(5, 1fr);
+    gap: 12px;
+  }
+
+  /* TIME COLUMN */
+  .time-col {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+
+    .time-header {
+      background: $primary;
+      color: white;
+      font-weight: 700;
+      text-align: center;
+      padding: 12px;
+      border-radius: 10px;
+      height: 60px;
+      display: flex;
+      align-items: center;
       justify-content: center;
     }
 
-    .ant-tabs-tab {
-      padding: 12px 30px !important;
-      font-size: 16px;
+    .time-cell {
+      background: $primary-bg;
+      padding: 14px;
+      border-radius: 12px;
       font-weight: 600;
-      border-radius: 50px !important;
-      background: #f0f0f0;
-      color: var(--text-gray);
-      border: none !important;
-      margin: 0 10px !important;
-      transition: all 0.3s ease;
-
-      &:hover {
-        color: var(--primary-color);
-        background: #fff;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-      }
-    }
-
-    .ant-tabs-tab-active {
-      background: var(--primary-color) !important;
-
-      .ant-tabs-tab-btn {
-        color: var(--white) !important;
-      }
-    }
-
-    /* Ẩn thanh ink-bar mặc định của Antd */
-    .ant-tabs-ink-bar {
-      display: none !important;
+      text-align: center;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
   }
 
-  /* GRID SYSTEM */
-  .grooming-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 30px;
-    padding-bottom: 40px;
-  }
-
-  /* MODERN CARD DESIGN */
-  .grooming-card {
-    background: var(--white);
-    border-radius: var(--radius-card);
-    overflow: hidden;
-    position: relative;
-    box-shadow: var(--shadow-sm);
-    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    border: 1px solid rgba(0, 0, 0, 0.02);
+  /* DAY COLUMN */
+  .day-col {
     display: flex;
     flex-direction: column;
+    gap: 12px;
 
-    &:hover {
-      transform: translateY(-10px);
-      box-shadow: var(--shadow-md);
-
-      .image-box img {
-        transform: scale(1.1);
-      }
-    }
-
-    /* BADGE GIẢM GIÁ */
-    .discount-badge {
-      position: absolute;
-      top: 15px;
-      left: 15px;
-      background: #ff4757;
-      color: white;
-      padding: 6px 12px;
+    .day-header {
+      background: $primary-bg;
       border-radius: 12px;
+      padding: 12px;
+      text-align: center;
       font-weight: 700;
-      font-size: 12px;
-      z-index: 10;
-      box-shadow: 0 4px 10px rgba(255, 71, 87, 0.4);
-    }
-
-    /* IMAGE AREA */
-    .image-box {
-      width: 100%;
-      height: 220px;
-      overflow: hidden;
-      position: relative;
-      background: #f9f9f9;
-
-      a {
-        display: block;
-        width: 100%;
-        height: 100%;
-      }
-
-      img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        transition: transform 0.5s ease;
-      }
-    }
-
-    /* INFO AREA */
-    .card-info {
-      padding: 20px;
-      flex: 1;
+      color: $primary;
+      height: 60px;
       display: flex;
       flex-direction: column;
-
-      .service-name {
-        font-size: 18px;
-        font-weight: 700;
-        color: var(--text-dark);
-        margin-bottom: 12px;
-        line-height: 1.4;
-
-        /* Cắt chữ nếu quá dài */
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-      }
-
-      .price-box {
-        margin-top: auto; /* Đẩy giá xuống đáy */
-        display: flex;
-        align-items: baseline;
-        gap: 10px;
-
-        .base-price {
-          font-size: 14px;
-          color: #b2bec3;
-          text-decoration: line-through;
-        }
-
-        .final-price {
-          font-size: 20px;
-          font-weight: 800;
-          color: var(--primary-color);
-        }
-      }
-
-      /* COMBO LIST */
-      .combo-children {
-        margin-top: 15px;
-        padding-top: 15px;
-        border-top: 1px dashed #eee;
-
-        p {
-          font-size: 13px;
-          color: var(--text-gray);
-          margin-bottom: 6px;
-          display: flex;
-          align-items: center;
-          gap: 8px;
-
-          &::before {
-            content: "✓"; /* Hoặc dùng icon paw */
-            display: inline-flex;
-            justify-content: center;
-            align-items: center;
-            width: 16px;
-            height: 16px;
-            background: #e0ffe0;
-            color: #00b894;
-            border-radius: 50%;
-            font-size: 10px;
-            font-weight: bold;
-          }
-        }
-      }
+      align-items: center;
+      justify-content: center;
     }
 
-    /* Nút xem chi tiết ẩn (hiện khi hover - tùy chọn) */
-    .view-btn {
-      margin: 0 20px 20px;
-      text-align: center;
-      padding: 10px;
-      background: #f1f2f6;
-      color: var(--text-dark);
-      border-radius: var(--radius-btn);
-      font-weight: 600;
-      font-size: 14px;
-      transition: 0.2s;
-
-      &:hover {
-        background: var(--primary-color);
-        color: white;
-      }
-    }
-  }
-
-  /* MODERN PAGINATION */
-  .pagination {
-    margin-top: 50px;
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-
-    button {
-      width: 40px;
-      height: 40px;
-      border: none;
-      background: var(--white);
+    .slot-btn {
+      width: 100%;
+      padding: 14px 10px;
       border-radius: 12px;
-      font-weight: 600;
-      color: var(--text-dark);
+      border: none;
+      font-weight: 700;
       cursor: pointer;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-      transition: all 0.2s ease;
+      transition: 0.2s;
+      height: 56px;
 
-      &:hover:not(:disabled) {
-        transform: translateY(-2px);
-        background: #ffeaa7;
+      &.free {
+        background: $success;
+        color: white;
+
+        &:hover {
+          transform: translateY(-4px);
+        }
       }
 
-      &.active {
-        background: var(--primary-color);
-        color: var(--white);
-        box-shadow: 0 4px 10px rgba(255, 140, 66, 0.4);
+      &.selected {
+        background: $primary;
+        color: white;
+        box-shadow: 0 6px 14px rgba(255, 111, 60, 0.28);
       }
 
-      &:disabled {
-        opacity: 0.4;
+      &.full {
+        background: #efefef;
+        color: #b3b3b3;
         cursor: not-allowed;
       }
     }
   }
+
+  /* STAFF SELECTION */
+  .staff-section {
+    margin-top: 32px;
+    padding: 24px;
+    background: white;
+    border-radius: 16px;
+    border: 2px solid $border;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+
+    .staff-title {
+      color: $primary;
+      font-weight: 700;
+      font-size: 18px;
+      margin-bottom: 16px;
+    }
+
+    .staff-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .staff-chip {
+      padding: 12px 20px;
+      border-radius: 50px;
+      background: $primary-bg;
+      border: 2px solid $primary;
+      color: $primary;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 15px;
+
+      .staff-icon {
+        font-size: 18px;
+      }
+
+      &:hover {
+        background: $primary;
+        color: white;
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(255, 111, 60, 0.3);
+      }
+
+      &.selected {
+        background: $primary;
+        color: white;
+        box-shadow: 0 8px 20px rgba(255, 111, 60, 0.3);
+      }
+
+      &:active {
+        transform: translateY(-1px);
+      }
+    }
+
+    .no-staff {
+      color: #999;
+      font-style: italic;
+    }
+  }
 }
 
-/* Responsive cho Mobile */
-@media (max-width: 768px) {
-  .grooming-container {
-    padding: 20px 15px;
+/* ===========================================
+   STEP 3 — HAMSTER
+=========================================== */
 
-    .header-section .title {
-      font-size: 26px;
+.step3 {
+  .hamster-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 22px;
+  }
+
+  .hamster-card {
+    background: white;
+    padding: 12px;
+    border-radius: 14px;
+    border: 2px solid $border;
+    display: flex;
+    gap: 14px;
+    cursor: pointer;
+    transition: 0.2s;
+
+    &:hover {
+      border-color: $primary;
+      box-shadow: 0 10px 24px rgba(255, 111, 60, 0.22);
     }
 
-    .grooming-grid {
-      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); /* Card nhỏ hơn trên mobile */
-      gap: 15px;
+    &.active {
+      border-color: $primary;
+      border-width: 3px;
+      box-shadow: 0 10px 24px rgba(255, 111, 60, 0.35);
+      background: lighten($primary-bg, 2%);
     }
 
-    .grooming-card {
-      .image-box {
-        height: 160px;
-      }
-      .card-info {
-        padding: 12px;
-        .service-name {
-          font-size: 15px;
+    img {
+      width: 90px;
+      height: 80px;
+      object-fit: cover;
+      border-radius: 10px;
+    }
+
+    h4 {
+      color: $primary;
+      font-weight: 700;
+      margin: 0 0 4px 0;
+    }
+
+    p {
+      margin: 2px 0;
+    }
+  }
+}
+
+/* ===========================================
+   STEP 4 — CONFIRMATION
+=========================================== */
+
+.step4 {
+  .confirm-box {
+    background: white;
+    padding: 32px;
+    border: 2px solid $border;
+    border-radius: 16px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  }
+
+  .confirm-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+
+  .confirm-col {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .confirm-item {
+    .confirm-label {
+      font-weight: 700;
+      color: $primary;
+      font-size: 15px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .confirm-value {
+      font-size: 16px;
+      color: $text;
+      padding-left: 26px;
+
+      &.hamster-value {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+
+        img {
+          width: 50px;
+          height: 50px;
+          border-radius: 50%;
+          object-fit: cover;
+          border: 2px solid $border;
         }
-        .price-box .final-price {
-          font-size: 16px;
+
+        span {
+          font-weight: 600;
         }
       }
+
+      &.price-value {
+        font-weight: 700;
+        color: $primary;
+        font-size: 18px;
+      }
+    }
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .confirm-row {
+      grid-template-columns: 1fr;
+    }
+  }
+}
+
+/* ===========================================
+   STEP ACTIONS (Navigation Buttons)
+=========================================== */
+
+.step-actions {
+  margin-top: 32px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  padding-top: 24px;
+  border-top: 2px solid $border;
+
+  button {
+    padding: 14px 32px;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    min-width: 160px;
+
+    &:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+  }
+
+  .btn-back {
+    background: #f1f2f6;
+    color: #555;
+    border: 2px solid #ddd;
+
+    &:hover:not(:disabled) {
+      background: #e1e2e6;
+      transform: translateX(-3px);
+    }
+  }
+
+  .btn-next,
+  .btn-confirm {
+    background: linear-gradient(135deg, $primary, $primary-light);
+    color: white;
+    box-shadow: 0 6px 16px rgba(255, 111, 60, 0.3);
+
+    &:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 24px rgba(255, 111, 60, 0.4);
+    }
+
+    &:active:not(:disabled) {
+      transform: translateY(0);
     }
   }
 }

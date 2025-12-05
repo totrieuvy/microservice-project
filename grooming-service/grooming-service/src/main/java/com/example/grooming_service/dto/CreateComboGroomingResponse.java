@@ -16,5 +16,8 @@ public class CreateComboGroomingResponse {
     private String serviceName;
     private Double finalPrice;
     private List<CreateSingleGroomingResponse> children;
+    private Integer discount;
+    private Double basePrice;
+    private String image;
 }
 

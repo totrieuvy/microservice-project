@@ -79,6 +79,14 @@ public class GroomingServiceImpl implements GroomingService {
         }).toList();
     }
 
+    @Override
+    public CreateSingleGroomingResponse getSingleServiceById(Long id) {
+        Services service = groomingRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Service not found with id: " + id));
+
+        return mapToResponse(service);
+    }
+
     private CreateSingleGroomingResponse mapToResponse(Services service) {
         CreateSingleGroomingResponse response = new CreateSingleGroomingResponse();
 
@@ -147,6 +155,8 @@ public class GroomingServiceImpl implements GroomingService {
             res.setId(combo.getId());
             res.setServiceName(combo.getServiceName());
             res.setFinalPrice(combo.getFinalPrice());
+            res.setImage(combo.getImageUrl());
+            res.setDiscount(combo.getDiscount());
 
             res.setChildren(
                     children.stream().map(this::mapToResponse).toList()
@@ -161,32 +171,37 @@ public class GroomingServiceImpl implements GroomingService {
     @Transactional
     public CreateComboGroomingResponse createComboService(CreateComboGroomingRequest req) {
 
-        // 1. Lấy danh sách service con
         List<Services> childServices = groomingRepository.findAllById(req.getChildServiceIds());
 
         if (childServices.isEmpty()) {
             throw new RuntimeException("Children service list is empty");
         }
 
-        // 2. Tính giá combo = tổng giá con
-        double totalPrice = childServices.stream()
+        // basePrice
+        double totalBasePrice = childServices.stream()
                 .mapToDouble(Services::getBasePrice)
                 .sum();
 
-        // 3. Lưu combo service
+        // finalPrice after discount
+        int discountPercent = req.getDiscount() != null ? req.getDiscount() : 0;
+        double finalPrice = totalBasePrice - (totalBasePrice * discountPercent / 100.0);
+
         Services combo = new Services();
         combo.setServiceName(req.getServiceName());
         combo.setDescription(req.getDescription());
         combo.setImageUrl(req.getImageUrl());
         combo.setType(GroomingEnum.COMBO);
-        combo.setBasePrice(totalPrice);
-        combo.setFinalPrice(totalPrice);
-        combo.setDiscount(0);
+
+        combo.setBasePrice(totalBasePrice);
+        combo.setDiscount(discountPercent);
+        combo.setFinalPrice(finalPrice);
+
         combo.setIsActive(true);
+        combo.setStartDate(req.getStartDate());
+        combo.setEndDate(req.getEndDate());
 
         groomingRepository.save(combo);
 
-        // 4. Lưu vào bảng service_details
         for (Services child : childServices) {
             ServiceDetail detail = new ServiceDetail();
             detail.setParentServiceId(combo.getId());
@@ -194,13 +209,13 @@ public class GroomingServiceImpl implements GroomingService {
             groomingDetailRepository.save(detail);
         }
 
-        // 5. Tạo response
         CreateComboGroomingResponse res = new CreateComboGroomingResponse();
         res.setId(combo.getId());
         res.setServiceName(combo.getServiceName());
         res.setFinalPrice(combo.getFinalPrice());
+        res.setDiscount(combo.getDiscount());
+        res.setBasePrice(combo.getBasePrice());
 
-        // map service con
         List<CreateSingleGroomingResponse> childrenRes =
                 childServices.stream().map(this::mapToResponse).toList();
 
@@ -208,5 +223,7 @@ public class GroomingServiceImpl implements GroomingService {
 
         return res;
     }
+
+
 
 }

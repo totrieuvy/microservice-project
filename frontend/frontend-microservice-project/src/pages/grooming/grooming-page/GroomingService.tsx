@@ -1,10 +1,15 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import "./GroomingService.scss";
 import api from "../../../config/axios";
-import { Link } from "react-router-dom";
-import { Tabs } from "antd";
+import { Steps, Spin } from "antd";
 
-// ... (Giữ nguyên các interface không thay đổi) ...
+import { useServiceStore } from "../../../zustand/serviceStore";
+import { useScheduleStore } from "../../../zustand/scheduleStore";
+import { useHamsterStore } from "../../../zustand/hamsterStore";
+
+/* -----------------------------------------------------------
+   Types
+----------------------------------------------------------- */
 interface SingleService {
   id: number;
   serviceName: string;
@@ -12,13 +17,11 @@ interface SingleService {
   finalPrice: number;
   discount: number;
   imageUrl: string;
-  isActive: boolean;
 }
 
 interface ComboChild {
   id: number;
   serviceName: string;
-  basePrice: number;
   finalPrice: number;
 }
 
@@ -27,169 +30,552 @@ interface ComboService {
   serviceName: string;
   finalPrice: number;
   children: ComboChild[];
+  image: string;
 }
 
 interface PaginationResponse<T> {
   content: T[];
-  totalElements: number;
   totalPages: number;
   number: number;
-  size: number;
 }
 
-interface ApiResponse<T> {
-  code: number;
-  message: string;
-  data: T;
+interface Slot {
+  startTime: string; // "09:00"
+  endTime: string; // "10:00"
+  availableSlot: number;
+  staffs: { name: string }[];
 }
 
+interface DaySchedule {
+  date: string; // "2025-12-01"
+  slots: Slot[];
+}
+
+/* -----------------------------------------------------------
+   Fixed list of times (ensures grid alignment)
+   CHANGE THIS LIST if you want different time rows
+----------------------------------------------------------- */
+const TIME_SLOTS = [
+  { start: "09:00", end: "10:00", label: "09:00 - 10:00" },
+  { start: "10:00", end: "11:00", label: "10:00 - 11:00" },
+  { start: "11:00", end: "12:00", label: "11:00 - 12:00" },
+  { start: "13:00", end: "14:00", label: "13:00 - 14:00" },
+  { start: "14:00", end: "15:00", label: "14:00 - 15:00" },
+  { start: "15:00", end: "16:00", label: "15:00 - 16:00" },
+  { start: "16:00", end: "17:00", label: "16:00 - 17:00" },
+];
+
+/* -----------------------------------------------------------
+   Helper: tuần hiện tại (T2..T6)
+----------------------------------------------------------- */
+function getCurrentWeekRange() {
+  const today = new Date();
+  const dow = today.getDay(); // 0=Sun
+  const diffToMonday = dow === 0 ? -6 : 1 - dow;
+
+  const monday = new Date(today);
+  monday.setDate(today.getDate() + diffToMonday);
+
+  const friday = new Date(monday);
+  friday.setDate(monday.getDate() + 4);
+
+  const fmt = (d: Date) => d.toISOString().split("T")[0];
+
+  return {
+    startDate: fmt(monday),
+    endDate: fmt(friday),
+    days: [...Array(5)].map((_, i) => {
+      const d = new Date(monday);
+      d.setDate(monday.getDate() + i);
+      return fmt(d);
+    }),
+  };
+}
+
+/* -----------------------------------------------------------
+   Component
+----------------------------------------------------------- */
 function GroomingService() {
-  const [activeTab, setActiveTab] = useState<string>("single");
-  const [services, setServices] = useState<SingleService[]>([]);
-  const [page, setPage] = useState<number>(0);
-  const [totalPages, setTotalPages] = useState<number>(0);
-  const [combos, setCombos] = useState<ComboService[]>([]);
+  const [step, setStep] = useState<number>(0);
 
-  const fetchSingle = (pageIndex: number) => {
+  /* STEP 1 state */
+  const [activeTab, setActiveTab] = useState<"single" | "combo">("single");
+  const [services, setServices] = useState<SingleService[]>([]);
+  const [combos, setCombos] = useState<ComboService[]>([]);
+  const [page, setPage] = useState<number>(0);
+  const [totalPages, setTotalPages] = useState<number>(1);
+
+  const serviceStore = useServiceStore();
+
+  const fetchSingles = (p: number) => {
     api
-      .get<ApiResponse<PaginationResponse<SingleService>>>(`/services/active?page=${pageIndex}&size=8`)
+      .get(`/services/active?page=${p}&size=8`)
       .then((res) => {
-        const data = res.data.data;
-        const filtered = data.content.filter((item) => item.isActive === true);
-        setServices(filtered);
-        setTotalPages(data.totalPages);
-        setPage(data.number);
+        const data: PaginationResponse<SingleService> = res.data.data;
+        setServices(data.content || []);
+        setPage(data.number ?? 0);
+        setTotalPages(data.totalPages ?? 1);
       })
-      .catch((err) => console.log(err));
+      .catch(() => {
+        setServices([]);
+        setPage(0);
+        setTotalPages(1);
+      });
   };
 
   const fetchCombos = () => {
     api
-      .get<ApiResponse<ComboService[]>>(`/services/combos`)
-      .then((res) => {
-        setCombos(res.data.data);
-      })
-      .catch((err) => console.log(err));
+      .get("/services/combos")
+      .then((res) => setCombos(res.data.data || []))
+      .catch(() => setCombos([]));
   };
 
   useEffect(() => {
-    fetchSingle(0);
-    document.title = "Dịch Vụ Chăm Sóc & Vệ Sinh";
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    fetchSingles(0);
   }, []);
 
-  const handleTabChange = (key: string) => {
-    setActiveTab(key);
-    if (key === "single") {
-      fetchSingle(0);
-    } else if (key === "combo") {
-      fetchCombos();
+  const [selectedService, setSelectedService] = useState<any>(null);
+
+  const selectService = (s: any) => {
+    setSelectedService(s);
+  };
+
+  /* STEP 2 state */
+  const { setDate, setSlot, setStaff } = useScheduleStore();
+  const [week, setWeek] = useState<DaySchedule[]>([]);
+  const [weekDays, setWeekDays] = useState<string[]>([]);
+  const [loadingSchedule, setLoadingSchedule] = useState<boolean>(false);
+
+  // selectedSlot: date + slot start time
+  const [selectedSlot, setSelectedSlot] = useState<{ date: string; startTime: string } | null>(null);
+
+  useEffect(() => {
+    if (step !== 1) return;
+
+    const { startDate, endDate, days } = getCurrentWeekRange();
+    setWeekDays(days);
+
+    setLoadingSchedule(true);
+    api
+      .post("/schedules/generate", { startDate, endDate })
+      .then((res) => {
+        // Res might be array of DaySchedule
+        const data: DaySchedule[] = res.data || res.data?.data || [];
+        // normalize: ensure every day exists (in case API returns fewer)
+        const normalized = days.map((d) => {
+          const found = (data || []).find((x) => x.date === d);
+          return found ?? { date: d, slots: [] };
+        });
+        setWeek(normalized);
+      })
+      .catch(() => {
+        // fallback: empty week (all slots empty)
+        const { days } = getCurrentWeekRange();
+        setWeek(days.map((d) => ({ date: d, slots: [] })));
+      })
+      .finally(() => setLoadingSchedule(false));
+  }, [step]);
+
+  // helper: find slot by date & start
+  const getSlot = (date: string, start: string) => {
+    const day = week.find((d) => d.date === date);
+    if (!day) return undefined;
+    return day.slots.find((s) => s.startTime === start);
+  };
+
+  const chooseTimeSlot = (date: string, startTime: string) => {
+    const slot = getSlot(date, startTime);
+    if (!slot || slot.availableSlot === 0) {
+      // nothing to do
+      setSelectedSlot(null);
+      return;
+    }
+    setSelectedSlot({ date, startTime });
+  };
+
+  const [selectedStaffTemp, setSelectedStaffTemp] = useState<{ name: string } | null>(null);
+
+  const chooseStaff = (staff: { name: string }) => {
+    setSelectedStaffTemp(staff);
+  };
+
+  /* STEP 3 state */
+  const hamsterStore = useHamsterStore();
+  const [hamsters, setHamsters] = useState<any[]>([]);
+  const [selectedHamsterId, setSelectedHamsterId] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (step !== 2) return;
+    api
+      .get("/hamsters")
+      .then((res) => setHamsters(res.data?.data || []))
+      .catch(() => setHamsters([]));
+  }, [step]);
+
+  const chooseHamster = (h: any) => {
+    setSelectedHamsterId(h?.id ?? null);
+  };
+
+  /* STEP 4 data from zustand */
+  const sSingle = serviceStore.selectedSingle;
+  const sCombo = serviceStore.selectedCombo;
+  const schDate = useScheduleStore.getState().selectedDate;
+  const schSlot = useScheduleStore.getState().selectedSlot;
+  const schStaff = useScheduleStore.getState().selectedStaff;
+  const hm = hamsterStore.hamster;
+
+  /* Confirm booking action (placeholder) */
+  const handleConfirm = async () => {
+    try {
+      if (!hm || !schDate || !schSlot || !schStaff) {
+        return alert("Thiếu thông tin để đặt lịch!");
+      }
+
+      const service = sSingle ?? sCombo;
+
+      const payload = {
+        hamsterId: hm.id,
+        bookingDate: new Date(schDate).toISOString(), // convert về ISO đúng format
+        staffId: schStaff.name, // Nếu backend cần ID thật thì đổi field này
+        startTime: schSlot.startTime,
+        endTime: schSlot.endTime,
+        paymentMethod: "VNPAY",
+        services: [
+          {
+            serviceId: service.id,
+            serviceName: service.serviceName,
+            servicePrice: service.finalPrice ?? service.basePrice,
+            discount: service.discount ?? 0,
+          },
+        ],
+      };
+
+      console.log("Payload gửi API:", payload);
+
+      const res = await api.post("/booking", payload);
+      const data = res.data;
+
+      if (data?.paymentUrl) {
+        window.location.href = data.paymentUrl; // redirect sang VNPAY
+      } else {
+        alert("Không nhận được paymentUrl từ server!");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Đặt lịch thất bại!");
     }
   };
 
-  return (
-    <div className="grooming-container">
-      {/* Header Section mới */}
-      <div className="header-section">
-        <h2 className="title">Dịch Vụ Spa & Grooming</h2>
-        <p className="subtitle">Chăm sóc toàn diện cho thú cưng của bạn với các gói dịch vụ tốt nhất</p>
-      </div>
+  /* render helpers */
+  const formattedWeekTitle = useMemo(() => {
+    if (!weekDays || weekDays.length !== 5) return "";
+    return `${weekDays[0]} → ${weekDays[4]}`;
+  }, [weekDays]);
 
-      <Tabs
-        defaultActiveKey="single"
-        onChange={handleTabChange}
-        items={[
-          { key: "single", label: "Dịch vụ lẻ" },
-          { key: "combo", label: "Combo Tiết Kiệm" },
-        ]}
+  /* -----------------------------------------------------------
+     JSX
+  ----------------------------------------------------------- */
+  return (
+    <div className="grooming-wrapper">
+      <Steps
+        current={step}
+        items={[{ title: "Dịch vụ" }, { title: "Lịch" }, { title: "Hamster" }, { title: "Xác nhận" }]}
       />
 
-      {activeTab === "single" && (
-        <>
-          <div className="grooming-grid">
-            {services.map((item) => (
-              <div className="grooming-card" key={item.id}>
-                {/* Badge mới đẹp hơn */}
-                {item.discount > 0 && <div className="discount-badge">-{item.discount}%</div>}
+      {/* STEP 1 */}
+      {step === 0 && (
+        <div className="step step1">
+          <h2 className="step-title">Dịch vụ Spa & Grooming</h2>
 
-                <div className="image-box">
-                  <Link to={`/lich-lam-dep/${item.id}`}>
-                    <img src={item.imageUrl} alt={item.serviceName} />
-                  </Link>
+          <div className="tab-buttons">
+            <button
+              className={activeTab === "single" ? "active" : ""}
+              onClick={() => {
+                setActiveTab("single");
+                fetchSingles(0);
+              }}
+            >
+              Dịch vụ đơn lẻ
+            </button>
+            <button
+              className={activeTab === "combo" ? "active" : ""}
+              onClick={() => {
+                setActiveTab("combo");
+                fetchCombos();
+              }}
+            >
+              Gói Combo Tiết Kiệm
+            </button>
+          </div>
+
+          <div className="service-grid">
+            {(activeTab === "single" ? services : combos).map((item: any) => (
+              <div
+                key={item.id}
+                className={`service-card ${selectedService?.id === item.id ? "selected" : ""}`}
+                onClick={() => selectService(item)}
+              >
+                <img className="service-img" src={item.imageUrl ?? item.image ?? ""} alt={item.serviceName} />
+
+                <div className="service-info">
+                  <h3>{item.serviceName}</h3>
+
+                  {item.finalPrice != null && <p className="price">{item.finalPrice.toLocaleString()}₫</p>}
+
+                  {item.children && (
+                    <ul className="combo-list">
+                      {item.children.map((c: any) => (
+                        <li key={c.id}>{c.serviceName}</li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="step-actions">
+            <button
+              className="btn-next"
+              disabled={!selectedService}
+              onClick={() => {
+                if (selectedService) {
+                  if (selectedService.children) {
+                    serviceStore.setCombo(selectedService);
+                  } else {
+                    serviceStore.setSingle(selectedService);
+                  }
+                  setStep(1);
+                }
+              }}
+            >
+              Tiếp theo →
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* STEP 2 */}
+      {step === 1 && (
+        <div className="step step2">
+          <h2 className="step-title">Chọn lịch</h2>
+
+          {loadingSchedule && <Spin />}
+
+          <div className="week-header">
+            <h3>Tuần {formattedWeekTitle}</h3>
+          </div>
+
+          <div className="legend">
+            <span>
+              <span className="dot free" /> Còn trống
+            </span>
+            <span>
+              <span className="dot selected" /> Đã chọn
+            </span>
+            <span>
+              <span className="dot full" /> Hết chỗ
+            </span>
+          </div>
+
+          <div className="weekly-grid">
+            {/* time column */}
+            <div className="time-col">
+              <div className="time-header">Giờ</div>
+              {TIME_SLOTS.map((t) => (
+                <div key={t.start} className="time-cell">
+                  {t.label}
+                </div>
+              ))}
+            </div>
+
+            {/* day columns */}
+            {weekDays.map((d) => (
+              <div className="day-col" key={d}>
+                <div className="day-header">
+                  {new Date(d).toLocaleDateString("vi-VN", { weekday: "short" })}
+                  <br />
+                  {new Date(d).toLocaleDateString("vi-VN")}
                 </div>
 
-                <div className="card-info">
-                  <Link to={`/lich-lam-dep/${item.id}`} style={{ textDecoration: "none" }}>
-                    <h3 className="service-name">{item.serviceName}</h3>
-                  </Link>
+                {TIME_SLOTS.map((t) => {
+                  const slot = getSlot(d, t.start);
+                  const isSelected = selectedSlot?.date === d && selectedSlot?.startTime === t.start;
+                  const className =
+                    slot == null
+                      ? "slot-btn full"
+                      : slot.availableSlot === 0
+                      ? "slot-btn full"
+                      : isSelected
+                      ? "slot-btn selected"
+                      : "slot-btn free";
 
-                  <div className="price-box">
-                    {item.discount > 0 && <span className="base-price">{item.basePrice.toLocaleString("vi-VN")}₫</span>}
-                    <span className="final-price">{item.finalPrice.toLocaleString("vi-VN")}₫</span>
+                  return (
+                    <button
+                      key={t.start}
+                      className={className}
+                      disabled={!slot || slot.availableSlot === 0}
+                      onClick={() => chooseTimeSlot(d, t.start)}
+                    >
+                      {slot ? `Còn trống ${slot.availableSlot}` : "--"}
+                    </button>
+                  );
+                })}
+              </div>
+            ))}
+          </div>
+
+          {/* Staff selection */}
+          {selectedSlot && (
+            <div className="staff-section">
+              <h3 className="staff-title">Chọn nhân viên:</h3>
+              <div className="staff-chips">
+                {(() => {
+                  const slot = getSlot(selectedSlot.date, selectedSlot.startTime);
+                  if (!slot) return <div className="no-staff">Không có nhân viên</div>;
+                  return slot.staffs.map((st) => (
+                    <button
+                      key={st.name}
+                      className={`staff-chip ${selectedStaffTemp?.name === st.name ? "selected" : ""}`}
+                      onClick={() => chooseStaff(st)}
+                    >
+                      <span className="staff-icon">👤</span>
+                      <span className="staff-name">{st.name}</span>
+                    </button>
+                  ));
+                })()}
+              </div>
+            </div>
+          )}
+
+          <div className="step-actions">
+            <button className="btn-back" onClick={() => setStep(0)}>
+              ← Quay lại
+            </button>
+            <button
+              className="btn-next"
+              disabled={!selectedSlot || !selectedStaffTemp}
+              onClick={() => {
+                if (selectedSlot && selectedStaffTemp) {
+                  const slot = getSlot(selectedSlot.date, selectedSlot.startTime);
+                  if (slot) {
+                    setDate(selectedSlot.date);
+                    setSlot(slot);
+                    setStaff(selectedStaffTemp);
+                    setStep(2);
+                  }
+                }
+              }}
+            >
+              Tiếp theo →
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* STEP 3 */}
+      {step === 2 && (
+        <div className="step step3">
+          <h2 className="step-title">Chọn Hamster</h2>
+
+          <div className="hamster-grid">
+            {hamsters.length === 0 && <div>Không có hamster</div>}
+            {hamsters.map((h) => (
+              <div
+                key={h.id}
+                className={`hamster-card ${selectedHamsterId === h.id ? "active" : ""}`}
+                onClick={() => chooseHamster(h)}
+              >
+                <div className="hamster-img-wrap">
+                  <img src={h.imageUrl ?? ""} alt={h.name} />
+                </div>
+
+                <div className="hamster-info">
+                  <h4>{h.name}</h4>
+                  <p>Loại: {h.breed ?? h.color ?? "—"}</p>
+                  <p>Giới tính: {h.genderEnum ?? "—"}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="step-actions">
+            <button className="btn-back" onClick={() => setStep(1)}>
+              ← Quay lại
+            </button>
+            <button
+              className="btn-next"
+              disabled={selectedHamsterId === null}
+              onClick={() => {
+                const selected = hamsters.find((h) => h.id === selectedHamsterId);
+                if (selected) {
+                  hamsterStore.setHamster(selected);
+                  setStep(3);
+                }
+              }}
+            >
+              Tiếp theo →
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* STEP 4 */}
+      {step === 3 && (
+        <div className="step step4">
+          <h2 className="step-title">Xác nhận thông tin</h2>
+
+          <div className="confirm-box">
+            <div className="confirm-row">
+              <div className="confirm-col">
+                <div className="confirm-item">
+                  <div className="confirm-label">🐹 Hamster</div>
+                  <div className="confirm-value hamster-value">
+                    {hm?.imageUrl && <img src={hm.imageUrl} alt={hm?.name} />}
+                    <span>{hm?.name ?? "-"}</span>
                   </div>
                 </div>
 
-                {/* Nút giả lập hành động */}
-                <Link to={`/lich-lam-dep/${item.id}`} className="view-btn">
-                  Đặt lịch ngay
-                </Link>
-              </div>
-            ))}
-          </div>
-
-          <div className="pagination">
-            <button disabled={page === 0} onClick={() => fetchSingle(page - 1)}>
-              &lt;
-            </button>
-            {[...Array(totalPages)].map((_, idx) => (
-              <button key={idx} className={page === idx ? "active" : ""} onClick={() => fetchSingle(idx)}>
-                {idx + 1}
-              </button>
-            ))}
-            <button disabled={page === totalPages - 1} onClick={() => fetchSingle(page + 1)}>
-              &gt;
-            </button>
-          </div>
-        </>
-      )}
-
-      {activeTab === "combo" && (
-        <div className="grooming-grid">
-          {combos.map((combo) => (
-            <div className="grooming-card" key={combo.id}>
-              {/* Badge cho combo */}
-              <div className="discount-badge" style={{ background: "#ffa502" }}>
-                Combo HOT
-              </div>
-
-              <div className="image-box">
-                <Link to={`/lich-lam-dep/${combo.id}`}>
-                  {/* Nếu bạn có ảnh riêng cho combo thì thay thế dòng dưới, nếu không dùng ảnh mặc định đẹp hơn */}
-                  <img
-                    src="https://media.istockphoto.com/id/1068118124/photo/professional-cares-for-a-dog-in-a-specialized-salon-groomers-holding-tools-at-the-hands.jpg?s=612x612&w=0&k=20&c=GIULBrZSjpT-HrHFfSwE6qjR_unw9lRuRkauu4gWDZE="
-                    alt={combo.serviceName}
-                  />
-                </Link>
-              </div>
-
-              <div className="card-info">
-                <h3 className="service-name">{combo.serviceName}</h3>
-
-                <div className="price-box">
-                  <span className="final-price">{combo.finalPrice.toLocaleString("vi-VN")}₫</span>
+                <div className="confirm-item">
+                  <div className="confirm-label">✨ Dịch vụ</div>
+                  <div className="confirm-value">{sSingle?.serviceName ?? sCombo?.serviceName ?? "-"}</div>
                 </div>
 
-                <div className="combo-children">
-                  {combo.children.map((child) => (
-                    <p key={child.id}>{child.serviceName}</p>
-                  ))}
+                <div className="confirm-item">
+                  <div className="confirm-label">💰 Giá tiền</div>
+                  <div className="confirm-value price-value">
+                    {(sSingle?.finalPrice ?? sCombo?.finalPrice)?.toLocaleString() ?? "-"}₫
+                  </div>
                 </div>
               </div>
-              <Link to={`/lich-lam-dep/${combo.id}`} className="view-btn">
-                Xem chi tiết
-              </Link>
+
+              <div className="confirm-col">
+                <div className="confirm-item">
+                  <div className="confirm-label">📅 Ngày hẹn</div>
+                  <div className="confirm-value">{schDate ?? "-"}</div>
+                </div>
+
+                <div className="confirm-item">
+                  <div className="confirm-label">⏰ Giờ hẹn</div>
+                  <div className="confirm-value">{schSlot ? `${schSlot.startTime} - ${schSlot.endTime}` : "-"}</div>
+                </div>
+
+                <div className="confirm-item">
+                  <div className="confirm-label">👤 Nhân viên</div>
+                  <div className="confirm-value">{schStaff?.name ?? "-"}</div>
+                </div>
+              </div>
             </div>
-          ))}
+          </div>
+
+          <div className="step-actions">
+            <button className="btn-back" onClick={() => setStep(2)}>
+              ← Quay lại
+            </button>
+            <button className="btn-confirm" onClick={handleConfirm}>
+              Xác nhận đặt lịch
+            </button>
+          </div>
         </div>
       )}
     </div>

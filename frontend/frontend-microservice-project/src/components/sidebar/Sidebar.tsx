@@ -107,7 +107,16 @@ export default function Sidebar() {
         {
           icon: <RiScissorsCutFill />,
           label: "Services",
-          path: "/admin/services",
+          children: [
+            {
+              label: "Single Services",
+              path: "/admin/services/single",
+            },
+            {
+              label: "Combo Services",
+              path: "/admin/services/combo",
+            },
+          ],
         },
         {
           icon: <RiScissorsCutFill />,

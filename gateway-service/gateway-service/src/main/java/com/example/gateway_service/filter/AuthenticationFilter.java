@@ -30,7 +30,8 @@ public class AuthenticationFilter implements GlobalFilter {
             "/api/auth/login",
             "/api/auth/register",
             "/api/auth/verify-otp",
-            "/api/services"
+            "/api/services",
+            "/api/payments/vnpay-ipn"
     );
 
     @Override

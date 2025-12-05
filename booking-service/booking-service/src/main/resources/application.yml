@@ -1,14 +1,12 @@
-spring.application.name=booking-service
-
 server:
   port: 8083
 
 spring:
   application:
-    name: hamster-service
+    name: booking-service
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/hamster-service
+    url: jdbc:postgresql://localhost:5432/booking-service
     username: postgres
     password: 12345678
     driver-class-name: org.postgresql.Driver

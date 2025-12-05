@@ -19,4 +19,5 @@ public interface UserService {
 
     ApiResponse<List<User>> getAllAccountsExceptCurrent(String authHeader);
 
+    ApiResponse<List<User>> getAllStaffAccounts();
 }

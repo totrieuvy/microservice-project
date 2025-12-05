@@ -9,6 +9,7 @@ import com.example.user_service.dto.request.RegisterRequest;
 import com.example.user_service.dto.response.LoginResponse;
 import com.example.user_service.dto.response.RegisterResponse;
 import com.example.user_service.entity.User;
+import com.example.user_service.enums.RoleEnum;
 import com.example.user_service.exception.EmailAlreadyExistsException;
 import com.example.user_service.exception.UserNotFoundException;
 import com.example.user_service.exception.WrongCredentialsException;
@@ -82,7 +83,11 @@ public class UserServiceImpl implements UserService {
         return ApiResponse.success("OK", filteredUsers);
     }
 
-
+    @Override
+    public ApiResponse<List<User>> getAllStaffAccounts() {
+        List<User> staffUsers = userRepository.findAllByRole(RoleEnum.STAFF);
+        return ApiResponse.success("OK", staffUsers);
+    }
 
     @Override
     public ApiResponse<String> verifyOtp(String token, String otp) {

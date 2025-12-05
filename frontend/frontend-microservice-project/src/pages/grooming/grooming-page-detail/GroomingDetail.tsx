@@ -22,7 +22,7 @@ function GroomingDetail() {
   const [service, setService] = useState<ServiceDetail | null>(null);
 
   const fetchDetailService = async (id: string) => {
-    const res = await api.get(`/services/active/${id}`);
+    const res = await api.get(`/services/detail/${id}`);
     setService(res.data.data);
   };
 

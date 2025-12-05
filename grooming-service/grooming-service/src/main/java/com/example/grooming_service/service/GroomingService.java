@@ -14,6 +14,8 @@ public interface GroomingService {
 
     List<CreateSingleGroomingResponse> getAllSingleServices();
 
+    CreateSingleGroomingResponse getSingleServiceById(Long id);
+
     CreateComboGroomingResponse createComboService(CreateSingleGroomingRequest createGroomingRequest);
 
     List<CreateComboGroomingResponse> getAllComboServices();

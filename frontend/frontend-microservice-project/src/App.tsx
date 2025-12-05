@@ -1,6 +1,7 @@
 import { RouterProvider, createBrowserRouter, Navigate, Outlet } from "react-router-dom";
 import { Suspense, lazy } from "react";
 import ManageAccount from "./pages/admin/account/ManageAccount";
+import ManageComboServices from "./pages/admin/combo-services/ManageComboServices";
 
 const HomepageLayout = lazy(() => import("./layouts/homepage/homepageLayout"));
 const Homepage = lazy(() => import("./components/homepage/homepage"));
@@ -15,6 +16,8 @@ const GroomingService = lazy(() => import("./pages/grooming/grooming-page/Groomi
 const GroomingDetail = lazy(() => import("./pages/grooming/grooming-page-detail/GroomingDetail"));
 const ManageSingleServices = lazy(() => import("./pages/admin/single-services/ManageSingleServices"));
 const ManageSingleServiceDetail = lazy(() => import("./pages/admin/single-services/ManageSingleServiceDetail"));
+const PaymentSuccess = lazy(() => import("./pages/payment/success/PaymentSuccess"));
+const PaymentFail = lazy(() => import("./pages/payment/fail/PaymentFail"));
 
 const decodeTokenSafe = (rawToken: string | null) => {
   if (!rawToken) return null;
@@ -107,6 +110,22 @@ const App = () => {
           element: (
             <Suspense fallback={<div>Loading...</div>}>
               <Homepage />
+            </Suspense>
+          ),
+        },
+        {
+          path: "/payment-success",
+          element: (
+            <Suspense fallback={<div>Loading...</div>}>
+              <PaymentSuccess />
+            </Suspense>
+          ),
+        },
+        {
+          path: "/payment-fail",
+          element: (
+            <Suspense fallback={<div>Loading...</div>}>
+              <PaymentFail />
             </Suspense>
           ),
         },
@@ -212,12 +231,16 @@ const App = () => {
               element: <div>Admin Dashboard</div>,
             },
             {
-              path: "services",
+              path: "services/single",
               element: <ManageSingleServices />,
             },
             {
-              path: "services/:id",
+              path: "services/single/:id",
               element: <ManageSingleServiceDetail />,
+            },
+            {
+              path: "services/combo",
+              element: <ManageComboServices />,
             },
             {
               path: "accounts",

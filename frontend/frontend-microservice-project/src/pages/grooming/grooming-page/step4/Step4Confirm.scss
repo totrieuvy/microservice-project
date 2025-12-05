@@ -1,0 +1,35 @@
+.confirm-wrapper {
+  padding: 20px;
+
+  h2 {
+    color: #ff7f50;
+    margin-bottom: 20px;
+  }
+
+  .confirm-box {
+    background: #fff;
+    border: 1px solid #ddd;
+    padding: 20px;
+    border-radius: 12px;
+
+    h3 {
+      margin-top: 15px;
+      color: #ff6a33;
+    }
+  }
+
+  .btn-confirm {
+    margin-top: 20px;
+    padding: 14px 20px;
+    background: #ff7f50;
+    border: none;
+    color: white;
+    font-size: 17px;
+    border-radius: 10px;
+    cursor: pointer;
+
+    &:hover {
+      background: #ff6a33;
+    }
+  }
+}

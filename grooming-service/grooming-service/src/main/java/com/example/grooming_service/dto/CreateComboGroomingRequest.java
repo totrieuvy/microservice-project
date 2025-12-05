@@ -15,4 +15,7 @@ public class CreateComboGroomingRequest {
     private String description;
     private String imageUrl;
     private List<Long> childServiceIds;
+    private Date startDate;
+    private Date endDate;
+    private Integer discount;
 }

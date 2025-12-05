@@ -63,5 +63,9 @@ public class UserController {
         return userService.getAllAccountsExceptCurrent(authHeader);
     }
 
+    @GetMapping("/staff-accounts")
+    public ApiResponse<List<User>> getAllStaffAccounts() {
+        return userService.getAllStaffAccounts();
+    }
 
 }
