@@ -7,4 +7,3 @@ public class ScheduleRequest {
     private String startDate; // yyyy-MM-dd
     private String endDate;   // yyyy-MM-dd
 }
-

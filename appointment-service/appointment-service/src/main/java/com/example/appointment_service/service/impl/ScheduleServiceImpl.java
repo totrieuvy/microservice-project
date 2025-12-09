@@ -1,10 +1,10 @@
 package com.example.appointment_service.service.impl;
 
-import com.example.appointment_service.dto.response.ApiResponseDTO;
-import com.example.appointment_service.dto.response.DailyScheduleResponse;
-import com.example.appointment_service.dto.response.StaffResponse;
-import com.example.appointment_service.dto.response.TimeSlotResponse;
-import com.example.appointment_service.dto.response.UserDTO;
+import com.example.appointment_service.dto.response.*;
+import com.example.appointment_service.entity.ScheduleDay;
+//import com.example.appointment_service.entity.StaffSlot;
+import com.example.appointment_service.entity.TimeSlot;
+import com.example.appointment_service.repository.ScheduleDayRepository;
 import com.example.appointment_service.service.ScheduleService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.ParameterizedTypeReference;
@@ -23,31 +23,24 @@ import java.util.List;
 public class ScheduleServiceImpl implements ScheduleService {
 
     private final RestTemplate restTemplate;
+    private final ScheduleDayRepository scheduleDayRepository;
 
     @Override
     public List<DailyScheduleResponse> generateSchedule(String startDate, String endDate) {
 
-        ResponseEntity<ApiResponseDTO<List<UserDTO>>> response =
-                restTemplate.exchange(
-                        "http://auth-service/api/auth/staff-accounts",
-                        HttpMethod.GET,
-                        null,
-                        new ParameterizedTypeReference<ApiResponseDTO<List<UserDTO>>>() {}
-                );
+        // call auth-service để lấy số staff
+        List<UserDTO> staffs = restTemplate.exchange(
+                "http://auth-service/api/auth/staff-accounts",
+                HttpMethod.GET,
+                null,
+                new ParameterizedTypeReference<ApiResponseDTO<List<UserDTO>>>() {}
+        ).getBody().getData();
 
-        List<UserDTO> users = response.getBody().getData();
+        int staffCount = staffs.size();
 
-        List<StaffResponse> staffs = users.stream()
-                .map(u -> {
-                    StaffResponse s = new StaffResponse();
-                    s.setName(u.getName());
-                    return s;
-                })
-                .toList();
+        LocalDate start = LocalDate.parse(startDate);
+        LocalDate end = LocalDate.parse(endDate);
 
-        int maxSlots = staffs.size();
-
-        // Time slots cố định
         String[][] TIME_SLOTS = {
                 {"09:00", "10:00"},
                 {"10:00", "11:00"},
@@ -59,35 +52,75 @@ public class ScheduleServiceImpl implements ScheduleService {
                 {"17:00", "18:00"}
         };
 
-        // Generate schedule for date range
         List<DailyScheduleResponse> result = new ArrayList<>();
-
-        LocalDate start = LocalDate.parse(startDate);
-        LocalDate end = LocalDate.parse(endDate);
 
         for (LocalDate date = start; !date.isAfter(end); date = date.plusDays(1)) {
 
-            List<TimeSlotResponse> slots = new ArrayList<>();
+            if (scheduleDayRepository.existsByDate(date))
+                continue;
 
-            for (String[] time : TIME_SLOTS) {
+            ScheduleDay day = new ScheduleDay();
+            day.setDate(date);
 
-                TimeSlotResponse slot = new TimeSlotResponse();
-                slot.setStartTime(time[0]);
-                slot.setEndTime(time[1]);
-                slot.setMaxSlots(maxSlots);
-                slot.setAvailableSlot(maxSlots);
-                slot.setStaffs(staffs);
+            List<TimeSlot> slots = new ArrayList<>();
+
+            for (String[] ts : TIME_SLOTS) {
+
+                TimeSlot slot = new TimeSlot();
+                slot.setStartTime(ts[0]);
+                slot.setEndTime(ts[1]);
+                slot.setMaxSlots(staffCount);
+                slot.setAvailableSlots(staffCount);
+                slot.setScheduleDay(day);
 
                 slots.add(slot);
             }
 
-            DailyScheduleResponse daily = new DailyScheduleResponse();
-            daily.setDate(date.toString());
-            daily.setSlots(slots);
+            day.setTimeSlots(slots);
 
-            result.add(daily);
+            scheduleDayRepository.save(day);
+
+            result.add(convertToResponse(day));
         }
 
         return result;
+    }
+
+    @Override
+    public List<DailyScheduleResponse> getSchedule(String startDate, String endDate) {
+        LocalDate start = LocalDate.parse(startDate);
+        LocalDate end = LocalDate.parse(endDate);
+
+        List<ScheduleDay> days = scheduleDayRepository
+                .findByDateBetweenOrderByDateAsc(start, end);
+
+        List<DailyScheduleResponse> result = new ArrayList<>();
+
+        for (ScheduleDay day : days) {
+            result.add(convertToResponse(day));
+        }
+
+        return result;
+    }
+
+    private DailyScheduleResponse convertToResponse(ScheduleDay day) {
+        DailyScheduleResponse res = new DailyScheduleResponse();
+        res.setDate(day.getDate().toString());
+
+        List<TimeSlotResponse> list = new ArrayList<>();
+
+        for (TimeSlot slot : day.getTimeSlots()) {
+            TimeSlotResponse ts = new TimeSlotResponse();
+            ts.setId(slot.getId());
+            ts.setStartTime(slot.getStartTime());
+            ts.setEndTime(slot.getEndTime());
+            ts.setMaxSlots(slot.getMaxSlots());
+            ts.setAvailableSlots(slot.getAvailableSlots());
+
+            list.add(ts);
+        }
+
+        res.setSlots(list);
+        return res;
     }
 }

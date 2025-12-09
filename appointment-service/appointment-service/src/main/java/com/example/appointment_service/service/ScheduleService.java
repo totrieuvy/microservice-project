@@ -6,5 +6,6 @@ import java.util.List;
 
 public interface ScheduleService {
     List<DailyScheduleResponse> generateSchedule(String startDate, String endDate);
+    List<DailyScheduleResponse> getSchedule(String startDate, String endDate);
 }
 

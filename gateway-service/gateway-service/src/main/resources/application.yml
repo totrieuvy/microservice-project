@@ -91,12 +91,12 @@ spring:
         - id: appointment-service
           uri: lb://appointment-service
           predicates:
-            - Path=/api/schedules, /api/schedules/generate, /api/schedules/**
+            - Path=/api/schedules, /api/schedules/generate, /api/schedules/**, /api/slots/*/book
 
         - id: booking-service
           uri: lb://booking-service
           predicates:
-            - Path=/api/booking, /api/booking/**
+            - Path=/api/booking/**
 
         - id: payment-service
           uri: lb://payment-service

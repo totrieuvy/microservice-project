@@ -5,6 +5,16 @@ spring:
   application:
     name: appointment-service
 
+  datasource:
+    url: jdbc:postgresql://localhost:5432/schedule-service
+    username: postgres
+    password: 12345678
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+
 eureka:
   client:
     service-url:

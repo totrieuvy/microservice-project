@@ -6,7 +6,7 @@ function ProfilePanel() {
     { title: "Hồ sơ của bạn", path: "/information" },
     { title: "Hamster của bạn", path: "/hamsters" },
     { title: "Lịch sử mua sắm", path: "/information/orders" },
-    { title: "Lịch đặt làm đẹp", path: "/information/booking-history" },
+    { title: "Lịch đặt làm đẹp", path: "/booking-history" },
   ];
 
   return (

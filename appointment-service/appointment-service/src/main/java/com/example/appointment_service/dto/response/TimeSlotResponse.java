@@ -5,9 +5,10 @@ import java.util.List;
 
 @Data
 public class TimeSlotResponse {
+    private Long id;
     private String startTime;
     private String endTime;
     private int maxSlots;
-    private int availableSlot;
-    private List<StaffResponse> staffs;
+    private int availableSlots;
 }
+

@@ -12,8 +12,8 @@ import java.util.List;
 public class BookingResponse {
 
     private Long id;
-    private Long userId;
-    private Long hamsterId;
+    private String userId;
+    private String hamsterId;
 
     private Date bookingDate;
     private String startTime;

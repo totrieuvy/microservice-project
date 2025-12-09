@@ -2,7 +2,10 @@ package com.example.booking_service.controller;
 
 import com.example.booking_service.dto.request.BookingRequest;
 import com.example.booking_service.dto.request.PaymentCallbackRequest;
+import com.example.booking_service.dto.response.BookingFullResponse;
 import com.example.booking_service.dto.response.BookingResponse;
+import com.example.booking_service.dto.response.PaginationResponse;
+import com.example.booking_service.entity.Booking;
 import com.example.booking_service.service.BookingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -26,5 +29,23 @@ public class BookingController {
     @PostMapping("/payment-callback")
     public void handlePaymentCallback(@RequestBody PaymentCallbackRequest request) {
         bookingService.updatePaymentStatus(request);
+    }
+
+    @GetMapping("/my")
+    public PaginationResponse<BookingFullResponse> getMyBookings(
+            @RequestHeader("Authorization") String authHeader,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size
+    ) {
+        return bookingService.getMyBookings(authHeader, page, size);
+    }
+
+    // 2️⃣ API: Get all bookings (admin)
+    @GetMapping("/all")
+    public PaginationResponse<BookingFullResponse> getAllBookings(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size
+    ) {
+        return bookingService.getAllBookings(page, size);
     }
 }

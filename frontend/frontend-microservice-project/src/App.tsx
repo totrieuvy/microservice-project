@@ -18,6 +18,7 @@ const ManageSingleServices = lazy(() => import("./pages/admin/single-services/Ma
 const ManageSingleServiceDetail = lazy(() => import("./pages/admin/single-services/ManageSingleServiceDetail"));
 const PaymentSuccess = lazy(() => import("./pages/payment/success/PaymentSuccess"));
 const PaymentFail = lazy(() => import("./pages/payment/fail/PaymentFail"));
+const BookingHistory = lazy(() => import("./pages/grooming/history/BookingHistory"));
 
 const decodeTokenSafe = (rawToken: string | null) => {
   if (!rawToken) return null;
@@ -167,6 +168,25 @@ const App = () => {
                 {
                   index: true,
                   element: <Information />,
+                },
+              ],
+            },
+          ],
+        },
+        {
+          element: <PrivateRouteUser />,
+          children: [
+            {
+              path: "booking-history",
+              element: (
+                <Suspense fallback={<div>Loading...</div>}>
+                  <ProfilePage />
+                </Suspense>
+              ),
+              children: [
+                {
+                  index: true,
+                  element: <BookingHistory />,
                 },
               ],
             },

@@ -40,10 +40,11 @@ interface PaginationResponse<T> {
 }
 
 interface Slot {
+  id: number;
   startTime: string; // "09:00"
   endTime: string; // "10:00"
-  availableSlot: number;
-  staffs: { name: string }[];
+  maxSlots: number;
+  availableSlots: number;
 }
 
 interface DaySchedule {
@@ -68,13 +69,13 @@ const TIME_SLOTS = [
 /* -----------------------------------------------------------
    Helper: tuần hiện tại (T2..T6)
 ----------------------------------------------------------- */
-function getCurrentWeekRange() {
+function getCurrentWeekRange(weekOffset: number = 0) {
   const today = new Date();
   const dow = today.getDay(); // 0=Sun
   const diffToMonday = dow === 0 ? -6 : 1 - dow;
 
   const monday = new Date(today);
-  monday.setDate(today.getDate() + diffToMonday);
+  monday.setDate(today.getDate() + diffToMonday + weekOffset * 7);
 
   const friday = new Date(monday);
   friday.setDate(monday.getDate() + 4);
@@ -134,17 +135,18 @@ function GroomingService() {
     fetchSingles(0);
   }, []);
 
-  const [selectedService, setSelectedService] = useState<any>(null);
+  const [selectedService, setSelectedService] = useState<SingleService | ComboService | null>(null);
 
-  const selectService = (s: any) => {
+  const selectService = (s: SingleService | ComboService) => {
     setSelectedService(s);
   };
 
   /* STEP 2 state */
-  const { setDate, setSlot, setStaff } = useScheduleStore();
+  const { setDate, setSlot } = useScheduleStore();
   const [week, setWeek] = useState<DaySchedule[]>([]);
   const [weekDays, setWeekDays] = useState<string[]>([]);
   const [loadingSchedule, setLoadingSchedule] = useState<boolean>(false);
+  const [weekOffset, setWeekOffset] = useState<number>(0);
 
   // selectedSlot: date + slot start time
   const [selectedSlot, setSelectedSlot] = useState<{ date: string; startTime: string } | null>(null);
@@ -152,15 +154,15 @@ function GroomingService() {
   useEffect(() => {
     if (step !== 1) return;
 
-    const { startDate, endDate, days } = getCurrentWeekRange();
+    const { startDate, endDate, days } = getCurrentWeekRange(weekOffset);
     setWeekDays(days);
 
     setLoadingSchedule(true);
     api
-      .post("/schedules/generate", { startDate, endDate })
+      .get(`/schedules?startDate=${startDate}&endDate=${endDate}`)
       .then((res) => {
-        // Res might be array of DaySchedule
-        const data: DaySchedule[] = res.data || res.data?.data || [];
+        // Res is array of DaySchedule
+        const data: DaySchedule[] = res.data || [];
         // normalize: ensure every day exists (in case API returns fewer)
         const normalized = days.map((d) => {
           const found = (data || []).find((x) => x.date === d);
@@ -170,11 +172,11 @@ function GroomingService() {
       })
       .catch(() => {
         // fallback: empty week (all slots empty)
-        const { days } = getCurrentWeekRange();
+        const { days } = getCurrentWeekRange(weekOffset);
         setWeek(days.map((d) => ({ date: d, slots: [] })));
       })
       .finally(() => setLoadingSchedule(false));
-  }, [step]);
+  }, [step, weekOffset]);
 
   // helper: find slot by date & start
   const getSlot = (date: string, start: string) => {
@@ -185,23 +187,34 @@ function GroomingService() {
 
   const chooseTimeSlot = (date: string, startTime: string) => {
     const slot = getSlot(date, startTime);
-    if (!slot || slot.availableSlot === 0) {
-      // nothing to do
+    if (!slot || slot.availableSlots === 0) {
       setSelectedSlot(null);
       return;
     }
+
+    // Check if date is in the past
+    const slotDate = new Date(date + "T" + startTime);
+    const now = new Date();
+    if (slotDate < now) {
+      alert("Không thể chọn ngày/giờ trong quá khứ!");
+      return;
+    }
+
     setSelectedSlot({ date, startTime });
   };
 
-  const [selectedStaffTemp, setSelectedStaffTemp] = useState<{ name: string } | null>(null);
-
-  const chooseStaff = (staff: { name: string }) => {
-    setSelectedStaffTemp(staff);
-  };
-
   /* STEP 3 state */
+  interface Hamster {
+    id: number;
+    name: string;
+    imageUrl: string;
+    breed?: string;
+    color?: string;
+    genderEnum?: string;
+  }
+
   const hamsterStore = useHamsterStore();
-  const [hamsters, setHamsters] = useState<any[]>([]);
+  const [hamsters, setHamsters] = useState<Hamster[]>([]);
   const [selectedHamsterId, setSelectedHamsterId] = useState<number | null>(null);
 
   useEffect(() => {
@@ -212,7 +225,7 @@ function GroomingService() {
       .catch(() => setHamsters([]));
   }, [step]);
 
-  const chooseHamster = (h: any) => {
+  const chooseHamster = (h: Hamster) => {
     setSelectedHamsterId(h?.id ?? null);
   };
 
@@ -221,31 +234,33 @@ function GroomingService() {
   const sCombo = serviceStore.selectedCombo;
   const schDate = useScheduleStore.getState().selectedDate;
   const schSlot = useScheduleStore.getState().selectedSlot;
-  const schStaff = useScheduleStore.getState().selectedStaff;
   const hm = hamsterStore.hamster;
 
   /* Confirm booking action (placeholder) */
   const handleConfirm = async () => {
     try {
-      if (!hm || !schDate || !schSlot || !schStaff) {
+      if (!hm || !schDate || !schSlot) {
         return alert("Thiếu thông tin để đặt lịch!");
       }
 
       const service = sSingle ?? sCombo;
+      if (!service) {
+        return alert("Vui lòng chọn dịch vụ!");
+      }
 
       const payload = {
         hamsterId: hm.id,
-        bookingDate: new Date(schDate).toISOString(), // convert về ISO đúng format
-        staffId: schStaff.name, // Nếu backend cần ID thật thì đổi field này
+        bookingDate: new Date(schDate).toISOString(),
         startTime: schSlot.startTime,
         endTime: schSlot.endTime,
         paymentMethod: "VNPAY",
+        slotId: schSlot.id,
         services: [
           {
             serviceId: service.id,
             serviceName: service.serviceName,
-            servicePrice: service.finalPrice ?? service.basePrice,
-            discount: service.discount ?? 0,
+            servicePrice: service.finalPrice,
+            discount: "discount" in service ? service.discount : 0,
           },
         ],
       };
@@ -309,7 +324,7 @@ function GroomingService() {
           </div>
 
           <div className="service-grid">
-            {(activeTab === "single" ? services : combos).map((item: any) => (
+            {(activeTab === "single" ? services : combos).map((item) => (
               <div
                 key={item.id}
                 className={`service-card ${selectedService?.id === item.id ? "selected" : ""}`}
@@ -322,9 +337,9 @@ function GroomingService() {
 
                   {item.finalPrice != null && <p className="price">{item.finalPrice.toLocaleString()}₫</p>}
 
-                  {item.children && (
+                  {"children" in item && item.children && (
                     <ul className="combo-list">
-                      {item.children.map((c: any) => (
+                      {item.children.map((c) => (
                         <li key={c.id}>{c.serviceName}</li>
                       ))}
                     </ul>
@@ -363,7 +378,13 @@ function GroomingService() {
           {loadingSchedule && <Spin />}
 
           <div className="week-header">
+            <button className="week-nav-btn" onClick={() => setWeekOffset(weekOffset - 1)} disabled={weekOffset <= 0}>
+              ← Tuần trước
+            </button>
             <h3>Tuần {formattedWeekTitle}</h3>
+            <button className="week-nav-btn" onClick={() => setWeekOffset(weekOffset + 1)}>
+              Tuần sau →
+            </button>
           </div>
 
           <div className="legend">
@@ -401,10 +422,15 @@ function GroomingService() {
                 {TIME_SLOTS.map((t) => {
                   const slot = getSlot(d, t.start);
                   const isSelected = selectedSlot?.date === d && selectedSlot?.startTime === t.start;
+
+                  // Check if this slot is in the past
+                  const slotDateTime = new Date(d + "T" + t.start);
+                  const isPast = slotDateTime < new Date();
+
                   const className =
-                    slot == null
+                    slot == null || isPast
                       ? "slot-btn full"
-                      : slot.availableSlot === 0
+                      : slot.availableSlots === 0
                       ? "slot-btn full"
                       : isSelected
                       ? "slot-btn selected"
@@ -414,10 +440,10 @@ function GroomingService() {
                     <button
                       key={t.start}
                       className={className}
-                      disabled={!slot || slot.availableSlot === 0}
+                      disabled={!slot || slot.availableSlots === 0 || isPast}
                       onClick={() => chooseTimeSlot(d, t.start)}
                     >
-                      {slot ? `Còn trống ${slot.availableSlot}` : "--"}
+                      {isPast ? "Đã qua" : slot ? `Còn trống ${slot.availableSlots}` : "--"}
                     </button>
                   );
                 })}
@@ -425,43 +451,19 @@ function GroomingService() {
             ))}
           </div>
 
-          {/* Staff selection */}
-          {selectedSlot && (
-            <div className="staff-section">
-              <h3 className="staff-title">Chọn nhân viên:</h3>
-              <div className="staff-chips">
-                {(() => {
-                  const slot = getSlot(selectedSlot.date, selectedSlot.startTime);
-                  if (!slot) return <div className="no-staff">Không có nhân viên</div>;
-                  return slot.staffs.map((st) => (
-                    <button
-                      key={st.name}
-                      className={`staff-chip ${selectedStaffTemp?.name === st.name ? "selected" : ""}`}
-                      onClick={() => chooseStaff(st)}
-                    >
-                      <span className="staff-icon">👤</span>
-                      <span className="staff-name">{st.name}</span>
-                    </button>
-                  ));
-                })()}
-              </div>
-            </div>
-          )}
-
           <div className="step-actions">
             <button className="btn-back" onClick={() => setStep(0)}>
               ← Quay lại
             </button>
             <button
               className="btn-next"
-              disabled={!selectedSlot || !selectedStaffTemp}
+              disabled={!selectedSlot}
               onClick={() => {
-                if (selectedSlot && selectedStaffTemp) {
+                if (selectedSlot) {
                   const slot = getSlot(selectedSlot.date, selectedSlot.startTime);
                   if (slot) {
                     setDate(selectedSlot.date);
                     setSlot(slot);
-                    setStaff(selectedStaffTemp);
                     setStep(2);
                   }
                 }
@@ -558,11 +560,6 @@ function GroomingService() {
                 <div className="confirm-item">
                   <div className="confirm-label">⏰ Giờ hẹn</div>
                   <div className="confirm-value">{schSlot ? `${schSlot.startTime} - ${schSlot.endTime}` : "-"}</div>
-                </div>
-
-                <div className="confirm-item">
-                  <div className="confirm-label">👤 Nhân viên</div>
-                  <div className="confirm-value">{schStaff?.name ?? "-"}</div>
                 </div>
               </div>
             </div>

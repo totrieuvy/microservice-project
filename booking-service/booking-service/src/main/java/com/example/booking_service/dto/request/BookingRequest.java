@@ -8,7 +8,7 @@ import java.util.List;
 @Data
 public class BookingRequest {
 
-    private Long hamsterId;
+    private String hamsterId;
     private Date bookingDate;
     private String staffId;
 
@@ -18,6 +18,8 @@ public class BookingRequest {
     private List<ServiceItem> services;
 
     private String paymentMethod;
+
+    private Long slotId;
 
     @Data
     public static class ServiceItem {

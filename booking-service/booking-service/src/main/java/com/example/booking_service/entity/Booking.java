@@ -17,8 +17,8 @@ public class Booking {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private Long userId;
-    private Long hamsterId;
+    private String userId;
+    private String hamsterId;
     private Date bookingDate;
     private String staffId;
 
