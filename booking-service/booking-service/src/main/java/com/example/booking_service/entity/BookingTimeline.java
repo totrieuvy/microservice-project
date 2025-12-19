@@ -19,6 +19,7 @@ public class BookingTimeline {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private Long bookingId;
+    private Date bookingTime;
     private String checkInUrl;
     private Date checkInTime;
     private String checkOutUrl;

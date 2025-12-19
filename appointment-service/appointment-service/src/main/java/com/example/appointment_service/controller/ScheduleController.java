@@ -5,6 +5,7 @@ import com.example.appointment_service.dto.response.DailyScheduleResponse;
 import com.example.appointment_service.entity.TimeSlot;
 import com.example.appointment_service.repository.TimeSlotRepository;
 import com.example.appointment_service.service.impl.ScheduleServiceImpl;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -44,6 +45,20 @@ public class ScheduleController {
         timeSlotRepository.save(slot);
     }
 
+    @PutMapping("/slots/{id}/reserve")
+    @Transactional
+    public void reserveSlot(@PathVariable Long id) {
+        int updated = timeSlotRepository.reserveSlot(id);
+        if (updated == 0) {
+            throw new RuntimeException("Slot is full");
+        }
+    }
+
+    @PutMapping("/slots/{id}/release")
+    @Transactional
+    public void releaseSlot(@PathVariable Long id) {
+        timeSlotRepository.releaseSlot(id);
+    }
 
 }
 

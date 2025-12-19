@@ -49,8 +49,8 @@ function PaymentSuccess() {
           <button className="btn-secondary" onClick={() => navigate("/")}>
             Về trang chủ
           </button>
-          <button className="btn-primary" onClick={() => navigate("/profile")}>
-            Xem đơn hàng
+          <button className="btn-primary" onClick={() => navigate("/booking-history")}>
+            Xem lịch sử
           </button>
         </div>
       </div>

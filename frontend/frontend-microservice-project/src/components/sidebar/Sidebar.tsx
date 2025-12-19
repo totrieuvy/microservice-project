@@ -123,6 +123,11 @@ export default function Sidebar() {
           label: "Accounts",
           path: "/admin/accounts",
         },
+        {
+          icon: <RiScissorsCutFill />,
+          label: "Manage appointment",
+          path: "/admin/appointments",
+        },
       ]);
     }
 

@@ -60,6 +60,7 @@ public class BookingResponse {
     @Data
     @Builder
     public static class BookingTimelineResponse {
+        private Date bookingTime;
         private String checkInUrl;
         private Date checkInTime;
         private String checkOutUrl;

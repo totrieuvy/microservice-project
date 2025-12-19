@@ -96,7 +96,7 @@ spring:
         - id: booking-service
           uri: lb://booking-service
           predicates:
-            - Path=/api/booking/**
+            - Path=/api/booking/**, /api/booking/{id}, /api/booking/by-email, /api/booking/{id}/status, /api/booking/{id}/check-in, /api/booking/{id}/check-out
 
         - id: payment-service
           uri: lb://payment-service

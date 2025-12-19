@@ -19,6 +19,9 @@ const ManageSingleServiceDetail = lazy(() => import("./pages/admin/single-servic
 const PaymentSuccess = lazy(() => import("./pages/payment/success/PaymentSuccess"));
 const PaymentFail = lazy(() => import("./pages/payment/fail/PaymentFail"));
 const BookingHistory = lazy(() => import("./pages/grooming/history/BookingHistory"));
+const BookingDetailHistory = lazy(() => import("./pages/grooming/history/BookingDetailHistory"));
+const ManageAppointment = lazy(() => import("./pages/admin/manage-appointment/ManageAppointment"));
+const ManageDetailAppointment = lazy(() => import("./pages/admin/manage-appointment/ManageDetailAppointment"));
 
 const decodeTokenSafe = (rawToken: string | null) => {
   if (!rawToken) return null;
@@ -196,6 +199,25 @@ const App = () => {
           element: <PrivateRouteUser />,
           children: [
             {
+              path: "booking-detail/:id",
+              element: (
+                <Suspense fallback={<div>Loading...</div>}>
+                  <ProfilePage />
+                </Suspense>
+              ),
+              children: [
+                {
+                  index: true,
+                  element: <BookingDetailHistory />,
+                },
+              ],
+            },
+          ],
+        },
+        {
+          element: <PrivateRouteUser />,
+          children: [
+            {
               path: "hamsters",
               element: (
                 <Suspense fallback={<div>Loading...</div>}>
@@ -265,6 +287,14 @@ const App = () => {
             {
               path: "accounts",
               element: <ManageAccount />,
+            },
+            {
+              path: "appointments",
+              element: <ManageAppointment />,
+            },
+            {
+              path: "appointments/:id",
+              element: <ManageDetailAppointment />,
             },
           ],
         },

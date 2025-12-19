@@ -23,6 +23,7 @@ public class BookingRequest {
 
     @Data
     public static class ServiceItem {
+        private Long slotId;
         private Long serviceId;
         private String serviceName;
         private Double servicePrice;

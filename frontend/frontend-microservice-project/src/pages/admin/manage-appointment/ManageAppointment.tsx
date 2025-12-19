@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
-import { Table, Tag, Button, Pagination } from "antd";
+import { Table, Tag, Pagination, Button } from "antd";
 import { EyeOutlined } from "@ant-design/icons";
-import api from "../../../config/axios";
-import "./BookingHistory.scss";
 import { useNavigate } from "react-router-dom";
+import api from "../../../config/axios";
+import "./ManageAppointment.scss";
 
 interface BookingDetail {
   serviceId: number;
@@ -18,16 +18,8 @@ interface Payment {
 }
 
 interface Timeline {
-  checkInUrl: string | null;
-  checkInTime: string | null;
-  checkOutUrl: string | null;
-  checkOutTime: string | null;
   paymentTime: string | null;
-  inProgressTime: string | null;
   completedTime: string | null;
-  cancelTime: string | null;
-  noShowTime: string | null;
-  failTime: string | null;
 }
 
 interface Booking {
@@ -52,23 +44,21 @@ interface BookingResponse {
   totalElements: number;
 }
 
-function BookingHistory() {
+function ManageAppointment() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [page, setPage] = useState<number>(0);
   const [totalElements, setTotalElements] = useState<number>(0);
-  const [totalPages, setTotalPages] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(false);
   const navigate = useNavigate();
 
   const fetchBookings = async (pageNum: number) => {
     setLoading(true);
     try {
-      const res = await api.get<BookingResponse>(`/booking/my?page=${pageNum}`);
+      const res = await api.get<BookingResponse>(`/booking/all?page=${pageNum}`);
       const data = res.data;
       setBookings(data.content || []);
       setPage(data.page);
       setTotalElements(data.totalElements);
-      setTotalPages(data.totalPages);
     } catch (error) {
       console.error("Failed to fetch bookings:", error);
       setBookings([]);
@@ -84,20 +74,13 @@ function BookingHistory() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "PAID":
-      case "REFUNDED":
         return "green";
       case "PENDING":
         return "orange";
       case "COMPLETED":
-      case "CHECKED_OUT":
         return "blue";
       case "CANCELLED":
-      case "FAILED":
-      case "NO_SHOW":
         return "red";
-      case "CHECKED_IN":
-      case "IN_PROGRESS":
-        return "cyan";
       default:
         return "default";
     }
@@ -113,18 +96,6 @@ function BookingHistory() {
         return "Hoàn thành";
       case "CANCELLED":
         return "Đã hủy";
-      case "FAILED":
-        return "Thất bại";
-      case "CHECKED_IN":
-        return "Đã Check-in";
-      case "CHECKED_OUT":
-        return "Đã Check-out";
-      case "NO_SHOW":
-        return "Không đến";
-      case "REFUNDED":
-        return "Đã hoàn tiền";
-      case "IN_PROGRESS":
-        return "Đang thực hiện";
       default:
         return status;
     }
@@ -139,10 +110,19 @@ function BookingHistory() {
       render: (id: number) => `#${id}`,
     },
     {
-      title: "Email",
+      title: "Email khách hàng",
       dataIndex: "userId",
       key: "userId",
-      width: 200,
+      width: 220,
+      render: (userId: string, record: Booking) => (
+        <Button
+          type="link"
+          style={{ padding: 0, height: "auto", fontWeight: 500 }}
+          onClick={() => navigate(`/admin/appointments/${record.id}`)}
+        >
+          {userId}
+        </Button>
+      ),
     },
     {
       title: "Ngày đặt",
@@ -152,18 +132,23 @@ function BookingHistory() {
       render: (date: string) => new Date(date).toLocaleDateString("vi-VN"),
     },
     {
-      title: "Giờ",
-      key: "time",
+      title: "Slot",
+      key: "slot",
       width: 120,
-      render: (_: unknown, record: Booking) => `${record.startTime} - ${record.endTime}`,
+      render: (_: unknown, record: Booking) => (
+        <Tag color="blue">
+          {record.startTime} - {record.endTime}
+        </Tag>
+      ),
     },
     {
       title: "Tổng tiền",
       dataIndex: "totalFinalPrice",
       key: "totalFinalPrice",
       width: 120,
+      align: "right" as const,
       render: (price: number) => (
-        <span style={{ fontWeight: 600, color: "#ff6f3c" }}>{price.toLocaleString("vi-VN")}₫</span>
+        <span style={{ fontWeight: 600, color: "#1890ff" }}>{price.toLocaleString("vi-VN")}₫</span>
       ),
     },
     {
@@ -183,7 +168,7 @@ function BookingHistory() {
           type="primary"
           icon={<EyeOutlined />}
           size="small"
-          onClick={() => navigate(`/booking-detail/${record.id}`)}
+          onClick={() => navigate(`/admin/appointments/${record.id}`)}
         >
           Chi tiết
         </Button>
@@ -192,39 +177,34 @@ function BookingHistory() {
   ];
 
   return (
-    <div className="booking-container">
+    <div className="manage-appointment">
       <div className="page-header">
-        <div className="title-wrapper">
-          <h2>Lịch sử đặt lịch</h2>
-          <p>Quản lý và theo dõi trạng thái các cuộc hẹn của bạn.</p>
+        <div>
+          <h2>Quản lý lịch hẹn</h2>
+          <p>Quản lý tất cả các lịch hẹn của khách hàng</p>
         </div>
-        <Button type="primary" size="large" style={{ backgroundColor: "#ff6f3c" }}>
-          + Đặt lịch mới
-        </Button>
       </div>
 
-      <div className="card-box no-padding">
+      <div className="table-container">
         <Table
-          className="custom-table"
           columns={columns}
           dataSource={bookings}
           rowKey="id"
           loading={loading}
           pagination={false}
-          scroll={{ x: 900 }}
+          scroll={{ x: 1000 }}
+          bordered
         />
 
-        <div
-          style={{ padding: "16px 24px", display: "flex", justifyContent: "flex-end", borderTop: "1px solid #f0f0f0" }}
-        >
+        <div className="pagination-wrapper">
           <Pagination
             current={page + 1} // BE 0-based → FE 1-based
             total={totalElements}
-            pageSize={5} // ⚠️ PHẢI KHỚP BE
+            pageSize={5} // 🔥 PHẢI KHỚP BE
             onChange={(p) => fetchBookings(p - 1)}
-            showTotal={(total) => `Tổng ${total} đơn`}
+            showTotal={(total) => `Tổng ${total} lịch hẹn`}
             showSizeChanger={false}
-            style={{ display: totalPages <= 1 ? "none" : "flex" }}
+            style={{ display: totalElements <= 5 ? "none" : "flex" }}
           />
         </div>
       </div>
@@ -232,4 +212,4 @@ function BookingHistory() {
   );
 }
 
-export default BookingHistory;
+export default ManageAppointment;

@@ -1,5 +1,6 @@
 package com.example.booking_service.controller;
 
+import com.example.booking_service.dto.request.BookingCheckRequest;
 import com.example.booking_service.dto.request.BookingRequest;
 import com.example.booking_service.dto.request.PaymentCallbackRequest;
 import com.example.booking_service.dto.response.BookingFullResponse;
@@ -7,6 +8,7 @@ import com.example.booking_service.dto.response.BookingResponse;
 import com.example.booking_service.dto.response.PaginationResponse;
 import com.example.booking_service.entity.Booking;
 import com.example.booking_service.service.BookingService;
+import com.example.booking_service.service.impl.BookingServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class BookingController {
 
-    private final BookingService bookingService;
+    private final BookingServiceImpl bookingService;
 
     @PostMapping
     public BookingResponse createBooking(
@@ -48,4 +50,34 @@ public class BookingController {
     ) {
         return bookingService.getAllBookings(page, size);
     }
+
+    @GetMapping("/{id}")
+    public BookingResponse getBookingById(@PathVariable Long id) {
+        return bookingService.getBookingById(id);
+    }
+
+    @PutMapping("/{id}/status")
+    public BookingResponse updateStatus(
+            @PathVariable Long id,
+            @RequestParam String status
+    ) {
+        return bookingService.updateStatus(id, status);
+    }
+
+    @PutMapping("/{id}/check-in")
+    public BookingResponse checkIn(
+            @PathVariable Long id,
+            @RequestBody BookingCheckRequest request
+    ) {
+        return bookingService.checkIn(id, request);
+    }
+
+    @PutMapping("/{id}/check-out")
+    public BookingResponse checkOut(
+            @PathVariable Long id,
+            @RequestBody BookingCheckRequest request
+    ) {
+        return bookingService.checkOut(id, request);
+    }
+
 }

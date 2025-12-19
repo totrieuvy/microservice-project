@@ -30,4 +30,9 @@ public class Booking {
     private Double totalBasePrice;
     private Integer discount;
     private Double totalFinalPrice;
+
+    private Long slotId;
+
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date expiredAt;
 }

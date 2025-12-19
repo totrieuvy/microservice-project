@@ -1,0 +1,225 @@
+/* Manage Appointment Styles */
+
+$primary: #1890ff;
+$primary-hover: #40a9ff;
+$success: #52c41a;
+$warning: #faad14;
+$error: #ff4d4f;
+$text-primary: #262626;
+$text-secondary: #8c8c8c;
+$border-color: #d9d9d9;
+$bg-light: #fafafa;
+
+.manage-appointment {
+  padding: 24px;
+  background: #f0f2f5;
+  min-height: calc(100vh - 64px);
+
+  .page-header {
+    background: white;
+    padding: 24px;
+    border-radius: 8px;
+    margin-bottom: 24px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+
+    h2 {
+      font-size: 24px;
+      font-weight: 700;
+      color: $text-primary;
+      margin: 0 0 8px 0;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+
+      &::before {
+        content: "";
+        display: block;
+        width: 4px;
+        height: 24px;
+        background: linear-gradient(to bottom, $primary, $primary-hover);
+        border-radius: 2px;
+      }
+    }
+
+    p {
+      color: $text-secondary;
+      margin: 0;
+      font-size: 14px;
+    }
+  }
+
+  .table-container {
+    background: white;
+    border-radius: 8px;
+    padding: 24px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+
+    .ant-table-wrapper {
+      .ant-table {
+        font-size: 14px;
+
+        .ant-table-thead > tr > th {
+          background: $bg-light;
+          color: $text-primary;
+          font-weight: 600;
+          padding: 16px;
+          border-bottom: 2px solid $border-color;
+
+          &::before {
+            display: none;
+          }
+        }
+
+        .ant-table-tbody > tr {
+          transition: all 0.2s;
+
+          &:hover > td {
+            background: #f5f5f5;
+          }
+
+          > td {
+            padding: 16px;
+            border-bottom: 1px solid #f0f0f0;
+          }
+        }
+
+        .ant-tag {
+          border-radius: 4px;
+          padding: 4px 12px;
+          font-weight: 600;
+          border: none;
+          font-size: 13px;
+        }
+
+        .ant-btn-primary {
+          background: $primary;
+          border-color: $primary;
+          border-radius: 4px;
+          font-weight: 600;
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+
+          &:hover {
+            background: $primary-hover;
+            border-color: $primary-hover;
+            transform: translateY(-1px);
+          }
+        }
+
+        .ant-btn-link {
+          color: $primary;
+
+          &:hover {
+            color: $primary-hover;
+          }
+        }
+      }
+    }
+
+    .pagination-wrapper {
+      margin-top: 24px;
+      display: flex;
+      justify-content: flex-end;
+      padding-top: 16px;
+      border-top: 1px solid #f0f0f0;
+
+      .ant-pagination {
+        .ant-pagination-item {
+          border-radius: 4px;
+          border-color: $border-color;
+          transition: all 0.2s;
+
+          a {
+            color: $text-primary;
+          }
+
+          &:hover {
+            border-color: $primary;
+
+            a {
+              color: $primary;
+            }
+          }
+
+          &-active {
+            border-color: $primary;
+            background: $primary;
+
+            a {
+              color: white;
+            }
+
+            &:hover {
+              border-color: $primary-hover;
+              background: $primary-hover;
+            }
+          }
+        }
+
+        .ant-pagination-prev,
+        .ant-pagination-next {
+          .ant-pagination-item-link {
+            border-radius: 4px;
+            border-color: $border-color;
+            transition: all 0.2s;
+
+            &:hover {
+              border-color: $primary;
+              color: $primary;
+            }
+          }
+        }
+
+        .ant-pagination-total-text {
+          color: $text-secondary;
+          font-weight: 500;
+        }
+      }
+    }
+  }
+
+  .ant-empty {
+    padding: 60px 20px;
+
+    .ant-empty-description {
+      color: $text-secondary;
+      font-size: 15px;
+    }
+  }
+
+  .ant-spin-container {
+    min-height: 400px;
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .manage-appointment {
+    padding: 16px;
+
+    .page-header {
+      padding: 16px;
+
+      h2 {
+        font-size: 20px;
+      }
+    }
+
+    .table-container {
+      padding: 16px;
+
+      .ant-table-wrapper {
+        .ant-table-thead > tr > th,
+        .ant-table-tbody > tr > td {
+          padding: 12px 8px;
+          font-size: 13px;
+        }
+      }
+
+      .pagination-wrapper {
+        justify-content: center;
+      }
+    }
+  }
+}

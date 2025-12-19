@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../../../config/axios";
-import { Tag, Spin, Row, Col, Steps, Divider, Button, Descriptions, Table, Image as AntImage } from "antd";
+import { Tag, Spin, Row, Col, Steps, Button, Descriptions, Table, Modal, Image, Upload } from "antd";
 import {
   ArrowLeftOutlined,
   ShoppingOutlined,
@@ -10,47 +10,176 @@ import {
   CheckCircleOutlined,
   UserOutlined,
   CameraOutlined,
+  UploadOutlined,
+  PlayCircleOutlined,
 } from "@ant-design/icons";
-import "./BookingHistory.scss";
+import "./ManageDetailAppointment.scss";
+import { toast } from "react-toastify";
+import type { RcFile, UploadFile, UploadProps } from "antd/es/upload";
+
+const CLOUDINARY_CLOUD_NAME = "duikwluky";
+const CLOUDINARY_UPLOAD_PRESET = "hamster_unsigned";
+const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`;
+
+interface BookingDetail {
+  serviceId: number;
+  serviceName: string;
+  servicePrice: number;
+  discount: number;
+}
+
+interface Payment {
+  paymentMethod: string;
+  responseCode: string;
+}
 
 interface Timeline {
-  bookingTime: string | null;
   checkInUrl: string | null;
   checkInTime: string | null;
   checkOutUrl: string | null;
   checkOutTime: string | null;
   paymentTime: string | null;
   inProgressTime: string | null;
-  completedTime: string | null;
+  completedTime: string | null; // Assuming this might still exist or be added back
   cancelTime: string | null;
   noShowTime: string | null;
   failTime: string | null;
 }
 
-function BookingDetailHistory() {
+interface Booking {
+  id: number;
+  userId: string;
+  hamsterId: string;
+  bookingDate: string;
+  startTime: string;
+  endTime: string;
+  totalBasePrice: number;
+  totalFinalPrice: number;
+  status: string;
+  details: BookingDetail[];
+  payment: Payment | null;
+  timeline: Timeline | null;
+}
+
+function ManageDetailAppointment() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<Booking | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [isCheckinModalOpen, setIsCheckinModalOpen] = useState(false);
+  const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false);
+  const [fileList, setFileList] = useState<UploadFile[]>([]);
+  const [uploading, setUploading] = useState(false);
 
-  // Dùng link ảnh online placeholder cho gọn code demo, bạn thay lại bằng base64 của bạn nhé
   const IMG_VN_PAY = "https://cdn.haitrieu.com/wp-content/uploads/2022/10/Icon-VNPAY-QR.png";
   const IMG_ZALO_PAY = "https://cdn.haitrieu.com/wp-content/uploads/2022/10/Logo-ZaloPay-Square.png";
 
+  const fetchDetail = async () => {
+    setLoading(true);
+    try {
+      const res = await api.get(`/booking/${id}`);
+      setData(res.data);
+    } catch (e) {
+      console.error("Error fetching booking detail:", e);
+      toast.error("Không thể tải thông tin lịch hẹn.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const uploadToCloudinary = async (file: RcFile): Promise<string> => {
+    const fd = new FormData();
+    fd.append("file", file);
+    fd.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
+
+    const res = await fetch(CLOUDINARY_URL, {
+      method: "POST",
+      body: fd,
+    });
+
+    if (!res.ok) throw new Error("Upload failed");
+
+    const data = await res.json();
+    return data.secure_url;
+  };
+
+  const handleUpload = async (options: any) => {
+    const { file, onSuccess, onError } = options;
+    try {
+      const url = await uploadToCloudinary(file as RcFile);
+      onSuccess?.({ secure_url: url });
+    } catch (err) {
+      onError?.(err);
+      toast.error("Upload ảnh thất bại");
+    }
+  };
+
   useEffect(() => {
-    const fetchDetail = async () => {
-      try {
-        const res = await api.get(`/booking/${id}`);
-        console.log("API Response:", res.data);
-        setData(res.data);
-      } catch (e) {
-        console.error("Error fetching booking detail:", e);
-      } finally {
-        setLoading(false);
-      }
-    };
     if (id) fetchDetail();
   }, [id]);
+
+  const handleCheckin = async () => {
+    const imageUrl = fileList[0]?.response?.secure_url;
+
+    if (!imageUrl) {
+      toast.error("Ảnh chưa upload thành công");
+      return;
+    }
+
+    setUploading(true);
+    try {
+      await api.put(`/booking/${id}/check-in`, { imageUrl });
+      toast.success("Check-in thành công!");
+      setIsCheckinModalOpen(false);
+      setFileList([]);
+      fetchDetail();
+    } catch (err) {
+      toast.error("Check-in thất bại");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleCheckout = async () => {
+    const imageUrl = fileList[0]?.response?.secure_url;
+
+    if (!imageUrl) {
+      toast.error("Ảnh chưa upload thành công");
+      return;
+    }
+
+    setUploading(true);
+    try {
+      await api.put(`/booking/${id}/check-out`, { imageUrl });
+      toast.success("Check-out thành công!");
+      setIsCheckoutModalOpen(false);
+      setFileList([]);
+      fetchDetail();
+    } catch (err) {
+      toast.error("Check-out thất bại");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleSetInProgress = async () => {
+    try {
+      await api.put(`/booking/${id}/status?status=IN_PROGRESS`);
+      toast.success("Đã cập nhật trạng thái thành 'Đang thực hiện'");
+      fetchDetail();
+    } catch (error) {
+      toast.error("Cập nhật trạng thái thất bại.");
+      console.error(error);
+    }
+  };
+
+  const uploadProps: UploadProps = {
+    listType: "picture-card",
+    maxCount: 1,
+    customRequest: handleUpload,
+    fileList,
+    onChange: ({ fileList }) => setFileList(fileList),
+  };
 
   if (loading || !data)
     return (
@@ -59,7 +188,6 @@ function BookingDetailHistory() {
       </div>
     );
 
-  // Xử lý logic Timeline cho Steps Component
   const getCurrentStep = () => {
     switch (data.status) {
       case "PENDING":
@@ -146,27 +274,63 @@ function BookingDetailHistory() {
       align: "right" as const,
       render: (price: number) => `${price.toLocaleString("vi-VN")}₫`,
     },
+    {
+      title: "Giảm giá",
+      dataIndex: "discount",
+      key: "discount",
+      align: "center" as const,
+      render: (discount: number) => (discount ? `${discount}%` : "-"),
+    },
   ];
 
   return (
-    <div className="booking-container">
-      {/* Header & Back Button */}
+    <div className="manage-detail-appointment">
       <div className="detail-page-header">
         <div>
           <Button
             type="link"
             icon={<ArrowLeftOutlined />}
             className="back-btn"
-            onClick={() => navigate("/booking-history")}
+            onClick={() => navigate("/admin/appointments")}
           >
             Quay lại danh sách
           </Button>
           <h1>
-            Đơn đặt lịch <span>#{data?.id || id}</span>
+            Chi tiết lịch hẹn <span>#{data?.id || id}</span>
           </h1>
         </div>
-        <div style={{ textAlign: "right" }}>
-          {/* Hiển thị status badge to đẹp hơn */}
+        <div className="header-actions">
+          {data.status === "PAID" && (
+            <Button
+              type="primary"
+              icon={<CameraOutlined />}
+              className="checkin-btn"
+              onClick={() => {
+                setFileList([]);
+                setIsCheckinModalOpen(true);
+              }}
+            >
+              Check-in
+            </Button>
+          )}
+          {data.status === "CHECKED_IN" && (
+            <Button type="primary" icon={<PlayCircleOutlined />} onClick={handleSetInProgress}>
+              Bắt đầu thực hiện
+            </Button>
+          )}
+          {data.status === "IN_PROGRESS" && (
+            <Button
+              type="primary"
+              danger
+              icon={<CameraOutlined />}
+              onClick={() => {
+                setFileList([]);
+                setIsCheckoutModalOpen(true);
+              }}
+            >
+              Check-out
+            </Button>
+          )}
           <Tag
             color={getStatusColor(data.status)}
             style={{ padding: "6px 16px", fontSize: "14px", borderRadius: "20px" }}
@@ -177,9 +341,7 @@ function BookingDetailHistory() {
       </div>
 
       <Row gutter={24}>
-        {/* Cột trái: Timeline & Thông tin dịch vụ (Chiếm 2/3) */}
         <Col span={24} lg={16}>
-          {/* Timeline Process */}
           <div className="card-box">
             <div className="section-title">
               <ClockCircleOutlined /> Tiến trình dịch vụ
@@ -191,27 +353,25 @@ function BookingDetailHistory() {
                 items={[
                   {
                     title: "Đặt lịch",
-                    description: data.timeline?.bookingTime
-                      ? new Date(data.timeline.bookingTime).toLocaleString("vi-VN")
-                      : "...",
+                    description: `Ngày ${new Date(data.bookingDate).toLocaleDateString("vi-VN")}`,
                   },
                   {
                     title: "Thanh toán",
                     description: data.timeline?.paymentTime
                       ? new Date(data.timeline.paymentTime).toLocaleString("vi-VN")
-                      : "...",
+                      : "Chờ xử lý",
                   },
                   {
                     title: "Check-in",
                     description: data.timeline?.checkInTime
                       ? new Date(data.timeline.checkInTime).toLocaleString("vi-VN")
-                      : "...",
+                      : "Chờ xử lý",
                   },
                   {
                     title: "Thực hiện",
                     description: data.timeline?.inProgressTime
                       ? new Date(data.timeline.inProgressTime).toLocaleString("vi-VN")
-                      : "...",
+                      : "Chờ xử lý",
                   },
                   {
                     title: "Hoàn thành",
@@ -225,7 +385,6 @@ function BookingDetailHistory() {
             </div>
           </div>
 
-          {/* Chi tiết dịch vụ */}
           <div className="card-box">
             <div className="section-title">
               <ShoppingOutlined /> Chi tiết dịch vụ
@@ -238,11 +397,10 @@ function BookingDetailHistory() {
               bordered
               summary={() => (
                 <Table.Summary.Row>
-                  <Table.Summary.Cell index={0} colSpan={1}>
+                  <Table.Summary.Cell index={0} colSpan={2}>
                     <span style={{ fontWeight: 600 }}>Tổng tạm tính</span>
                   </Table.Summary.Cell>
                   <Table.Summary.Cell index={1} align="right">
-                    {/* Nếu có discount tính logic ở đây, hiện tại hiển thị totalFinal */}
                     <span style={{ fontWeight: 600 }}>{data.totalFinalPrice.toLocaleString("vi-VN")}₫</span>
                   </Table.Summary.Cell>
                 </Table.Summary.Row>
@@ -264,14 +422,14 @@ function BookingDetailHistory() {
                 {data.timeline.checkInUrl && (
                   <div className="image-item">
                     <p>Ảnh Check-in</p>
-                    <AntImage width={"100%"} src={data.timeline.checkInUrl} />
+                    <Image width={"100%"} src={data.timeline.checkInUrl} />
                     <span>{new Date(data.timeline.checkInTime!).toLocaleString("vi-VN")}</span>
                   </div>
                 )}
                 {data.timeline.checkOutUrl && (
                   <div className="image-item">
                     <p>Ảnh Check-out</p>
-                    <AntImage width={"100%"} src={data.timeline.checkOutUrl} />
+                    <Image width={"100%"} src={data.timeline.checkOutUrl} />
                     <span>{new Date(data.timeline.checkOutTime!).toLocaleString("vi-VN")}</span>
                   </div>
                 )}
@@ -280,9 +438,7 @@ function BookingDetailHistory() {
           )}
         </Col>
 
-        {/* Cột phải: Thông tin khách hàng & Thanh toán (Chiếm 1/3) */}
         <Col span={24} lg={8}>
-          {/* Thông tin thanh toán */}
           <div className="card-box">
             <div className="section-title">
               <CreditCardOutlined /> Thông tin thanh toán
@@ -295,9 +451,9 @@ function BookingDetailHistory() {
               {data.payment?.paymentMethod === "ZALOPAY" && (
                 <img src={IMG_ZALO_PAY} alt="ZALOPAY" className="payment-logo" style={{ height: 60 }} />
               )}
-              {!["VNPAY", "ZALOPAY"].includes(data.payment?.paymentMethod) && (
+              {data.payment?.paymentMethod && !["VNPAY", "ZALOPAY"].includes(data.payment.paymentMethod) && (
                 <Tag color="default" style={{ fontSize: 14, padding: "5px 10px" }}>
-                  {data.payment?.paymentMethod || "Tiền mặt"}
+                  {data.payment.paymentMethod}
                 </Tag>
               )}
             </div>
@@ -309,23 +465,27 @@ function BookingDetailHistory() {
                   : "Chưa thanh toán"}
               </Descriptions.Item>
               <Descriptions.Item label="Trạng thái">
-                <span>
-                  <Tag color={getStatusColor(data.status)}>{getStatusText(data.status)}</Tag>
+                <span
+                  style={{ color: ["PAID", "REFUNDED"].includes(data.status) ? "green" : "orange", fontWeight: 600 }}
+                >
+                  {["PAID", "REFUNDED"].includes(data.status) ? "Thành công" : "Đang xử lý"}
                 </span>
               </Descriptions.Item>
             </Descriptions>
           </div>
 
-          {/* Thông tin khách hàng */}
           <div className="card-box">
             <div className="section-title">
-              <UserOutlined /> Thông tin đặt lịch
+              <UserOutlined /> Thông tin khách hàng
             </div>
             <Descriptions column={1} layout="vertical">
-              <Descriptions.Item label="Khách hàng">
+              <Descriptions.Item label="Email khách hàng">
                 <b>{data.userId}</b>
               </Descriptions.Item>
-              <Descriptions.Item label="Ngày đặt">
+              <Descriptions.Item label="Hamster ID">
+                <Tag color="blue">#{data.hamsterId}</Tag>
+              </Descriptions.Item>
+              <Descriptions.Item label="Ngày & Giờ">
                 <div>{new Date(data.bookingDate).toLocaleDateString("vi-VN")}</div>
                 <div>
                   <Tag color="blue">
@@ -337,8 +497,46 @@ function BookingDetailHistory() {
           </div>
         </Col>
       </Row>
+
+      <Modal
+        title="Check-in cho Lịch hẹn"
+        open={isCheckinModalOpen}
+        onOk={handleCheckin}
+        onCancel={() => setIsCheckinModalOpen(false)}
+        confirmLoading={uploading}
+        okText="Xác nhận Check-in"
+        cancelText="Hủy"
+        destroyOnClose
+      >
+        <p>Vui lòng tải lên hình ảnh của hamster để xác nhận check-in.</p>
+        <Upload {...uploadProps}>
+          <div>
+            <UploadOutlined />
+            <div style={{ marginTop: 8 }}>Chọn ảnh</div>
+          </div>
+        </Upload>
+      </Modal>
+
+      <Modal
+        title="Check-out cho Lịch hẹn"
+        open={isCheckoutModalOpen}
+        onOk={handleCheckout}
+        onCancel={() => setIsCheckoutModalOpen(false)}
+        confirmLoading={uploading}
+        okText="Xác nhận Check-out"
+        cancelText="Hủy"
+        destroyOnClose
+      >
+        <p>Vui lòng tải lên hình ảnh của hamster khi hoàn thành dịch vụ để xác nhận check-out.</p>
+        <Upload {...uploadProps}>
+          <div>
+            <UploadOutlined />
+            <div style={{ marginTop: 8 }}>Chọn ảnh</div>
+          </div>
+        </Upload>
+      </Modal>
     </div>
   );
 }
 
-export default BookingDetailHistory;
+export default ManageDetailAppointment;
