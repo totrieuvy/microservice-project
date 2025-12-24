@@ -52,12 +52,12 @@ public class BookingController {
     }
 
     @GetMapping("/{id}")
-    public BookingResponse getBookingById(@PathVariable Long id) {
+    public BookingFullResponse getBookingById(@PathVariable Long id) {
         return bookingService.getBookingById(id);
     }
 
     @PutMapping("/{id}/status")
-    public BookingResponse updateStatus(
+    public BookingFullResponse updateStatus(
             @PathVariable Long id,
             @RequestParam String status
     ) {
@@ -65,7 +65,7 @@ public class BookingController {
     }
 
     @PutMapping("/{id}/check-in")
-    public BookingResponse checkIn(
+    public BookingFullResponse checkIn(
             @PathVariable Long id,
             @RequestBody BookingCheckRequest request
     ) {
@@ -73,7 +73,7 @@ public class BookingController {
     }
 
     @PutMapping("/{id}/check-out")
-    public BookingResponse checkOut(
+    public BookingFullResponse checkOut(
             @PathVariable Long id,
             @RequestBody BookingCheckRequest request
     ) {

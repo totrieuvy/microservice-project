@@ -20,6 +20,8 @@
     "react-router-dom": "^7.9.6",
     "react-toastify": "^11.0.5",
     "sass": "^1.94.2",
+    "sockjs-client": "^1.6.1",
+    "stompjs": "^2.3.3",
     "swiper": "^12.0.3",
     "zustand": "^5.0.9"
   },

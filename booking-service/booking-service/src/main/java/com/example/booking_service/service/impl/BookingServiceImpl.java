@@ -7,11 +7,9 @@ import com.example.booking_service.dto.request.BookingCheckRequest;
 import com.example.booking_service.dto.request.BookingRequest;
 import com.example.booking_service.dto.request.PaymentCallbackRequest;
 import com.example.booking_service.dto.response.*;
-import com.example.booking_service.entity.Booking;
-import com.example.booking_service.entity.BookingDetail;
-import com.example.booking_service.entity.BookingPayment;
-import com.example.booking_service.entity.BookingTimeline;
+import com.example.booking_service.entity.*;
 import com.example.booking_service.entity.enums.BookingStatus;
+import com.example.booking_service.entity.enums.PaymentMethod;
 import com.example.booking_service.exception.SlotLockedException;
 import com.example.booking_service.mapper.BookingMapper;
 import com.example.booking_service.repository.BookingDetailRepository;
@@ -33,10 +31,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import org.redisson.api.RedissonClient;
@@ -61,35 +56,25 @@ public class BookingServiceImpl implements BookingService {
     @Override
     @Transactional
     public BookingResponse createBooking(String authHeader, BookingRequest request) {
-
-        System.out.println("Time clicked: " + new Date());
+        System.out.println("AUTH HEADER RECEIVED = [" + authHeader + "]");
 
         String lockKey = "lock:slot:" + request.getSlotId();
         RLock lock = redissonClient.getLock(lockKey);
-
         boolean locked = false;
 
         try {
-            // ⏱ try lock tối đa 3s, auto unlock sau 10s
             locked = lock.tryLock(3, 10, TimeUnit.SECONDS);
-
             if (!locked) {
                 throw new SlotLockedException("Slot is being booked by another user");
             }
-            System.out.println("🔒 LOCKED at " + new Date());
 
-            // ========= CRITICAL SECTION =========
+            // ===== CRITICAL SECTION =====
 
             String userId = authClient.getCurrentUserEmail(authHeader);
 
-            double totalBasePrice = request.getServices()
-                    .stream()
-                    .mapToDouble(s -> s.getServicePrice())
-                    .sum();
-
+            // 1️⃣ CREATE BOOKING (time chung)
             Booking booking = new Booking();
             booking.setUserId(userId);
-            booking.setHamsterId(request.getHamsterId());
             booking.setBookingDate(request.getBookingDate());
             booking.setStaffId(request.getStaffId());
             booking.setStartTime(request.getStartTime());
@@ -97,37 +82,60 @@ public class BookingServiceImpl implements BookingService {
             booking.setSlotId(request.getSlotId());
             booking.setStatus(BookingStatus.PENDING);
             booking.setExpiredAt(Date.from(Instant.now().plus(5, ChronoUnit.MINUTES)));
+
+            List<BookingItem> bookingItems = new ArrayList<>();
+            double totalBasePrice = 0;
+
+            // 2️⃣ LOOP HAMSTERS
+            for (BookingRequest.BookingItemRequest itemReq : request.getItems()) {
+
+                BookingItem item = new BookingItem();
+                item.setHamsterId(itemReq.getHamsterId());
+                item.setBooking(booking);
+
+                List<BookingServiceItem> serviceItems = new ArrayList<>();
+
+                // 3️⃣ LOOP SERVICES CỦA HAMSTER
+                for (BookingRequest.ServiceItemRequest s : itemReq.getServices()) {
+
+                    BookingServiceItem si = new BookingServiceItem();
+                    si.setServiceId(s.getServiceId());
+                    si.setServiceName(s.getServiceName());
+                    si.setServicePrice(s.getServicePrice());
+                    si.setDiscount(s.getDiscount());
+                    si.setBookingItem(item);
+
+                    totalBasePrice += s.getServicePrice();
+                    serviceItems.add(si);
+                }
+
+                item.setServices(serviceItems);
+                bookingItems.add(item);
+            }
+
+            booking.setItems(bookingItems);
             booking.setTotalBasePrice(totalBasePrice);
             booking.setTotalFinalPrice(totalBasePrice);
 
-            // 🔥 Atomic DB bên appointment-service
+            // 4️⃣ RESERVE SLOT (atomic)
             appointmentClient.reserveSlot(request.getSlotId());
 
+            // 5️⃣ SAVE (cascade save item + service)
             bookingRepository.save(booking);
 
-            // Save detail
-            List<BookingDetail> details = request.getServices().stream()
-                    .map(s -> {
-                        BookingDetail d = new BookingDetail();
-                        d.setBookingId(booking.getId());
-                        d.setServiceId(s.getServiceId());
-                        d.setServiceName(s.getServiceName());
-                        d.setServicePrice(s.getServicePrice());
-                        d.setDiscount(s.getDiscount());
-                        return d;
-                    }).toList();
-
-            bookingDetailRepository.saveAll(details);
-
+            // 6️⃣ PAYMENT
             BookingPayment payment = new BookingPayment();
             payment.setBookingId(booking.getId());
+            payment.setPaymentMethod(PaymentMethod.VNPAY);
             bookingPaymentRepository.save(payment);
 
+            // 7️⃣ TIMELINE
             BookingTimeline timeline = new BookingTimeline();
             timeline.setBookingId(booking.getId());
             timeline.setBookingTime(new Date());
             bookingTimelineRepository.save(timeline);
 
+            // 8️⃣ PAYMENT URL
             String paymentUrl = null;
             if ("VNPAY".equalsIgnoreCase(request.getPaymentMethod())) {
                 paymentUrl = paymentClient.createVnpayPayment(
@@ -138,11 +146,11 @@ public class BookingServiceImpl implements BookingService {
 
             return bookingMapper.toResponse(
                     booking,
-                    details,
                     payment,
                     timeline,
                     paymentUrl
             );
+
         } catch (InterruptedException e) {
             throw new RuntimeException("Could not acquire slot lock", e);
         } finally {
@@ -151,6 +159,7 @@ public class BookingServiceImpl implements BookingService {
             }
         }
     }
+
 
 
 //    @Override
@@ -326,9 +335,9 @@ public class BookingServiceImpl implements BookingService {
 
         BookingFullResponse res = new BookingFullResponse();
 
+        // ---- BASIC INFO ----
         res.setId(booking.getId());
         res.setUserId(booking.getUserId());
-        res.setHamsterId(booking.getHamsterId());
         res.setBookingDate(booking.getBookingDate());
         res.setStartTime(booking.getStartTime());
         res.setEndTime(booking.getEndTime());
@@ -336,37 +345,65 @@ public class BookingServiceImpl implements BookingService {
         res.setTotalFinalPrice(booking.getTotalFinalPrice());
         res.setStatus(booking.getStatus().toString());
 
-        // ---- DETAIL ----
-        List<BookingDetail> details = bookingDetailRepository.findByBookingId(booking.getId());
-        res.setDetails(details.stream().map(d -> {
-            BookingDetailResponse r = new BookingDetailResponse();
-            r.setServiceId(d.getServiceId());
-            r.setServiceName(d.getServiceName());
-            r.setServicePrice(d.getServicePrice());
-            r.setDiscount(d.getDiscount());
-            return r;
-        }).toList());
+        // ---- ITEMS (HAMSTERS + SERVICES) ----
+        res.setItems(
+                booking.getItems().stream()
+                        .map(item -> {
+                            BookingFullResponse.BookingItemResponse itemRes =
+                                    new BookingFullResponse.BookingItemResponse();
+
+                            itemRes.setHamsterId(item.getHamsterId());
+
+                            itemRes.setServices(
+                                    item.getServices().stream()
+                                            .map(s -> {
+                                                BookingFullResponse.ServiceResponse sr =
+                                                        new BookingFullResponse.ServiceResponse();
+                                                sr.setServiceId(s.getServiceId());
+                                                sr.setServiceName(s.getServiceName());
+                                                sr.setServicePrice(s.getServicePrice());
+                                                sr.setDiscount(s.getDiscount());
+                                                return sr;
+                                            })
+                                            .toList()
+                            );
+
+                            return itemRes;
+                        })
+                        .toList()
+        );
 
         // ---- PAYMENT ----
-        BookingPayment payment = bookingPaymentRepository.findByBookingId(booking.getId());
+        BookingPayment payment =
+                bookingPaymentRepository.findByBookingId(booking.getId());
         if (payment != null) {
-            BookingPaymentResponse p = new BookingPaymentResponse();
-            p.setPaymentMethod(payment.getPaymentMethod() == null ? null : payment.getPaymentMethod().toString());
+            BookingFullResponse.BookingPaymentResponse p =
+                    new BookingFullResponse.BookingPaymentResponse();
+            p.setPaymentMethod(
+                    payment.getPaymentMethod() == null
+                            ? null
+                            : payment.getPaymentMethod().toString()
+            );
             p.setResponseCode(payment.getResponseCode());
             res.setPayment(p);
         }
 
         // ---- TIMELINE ----
-        BookingTimeline timeline = bookingTimelineRepository.findByBookingId(booking.getId());
+        BookingTimeline timeline =
+                bookingTimelineRepository.findByBookingId(booking.getId());
         if (timeline != null) {
-            BookingTimelineResponse t = new BookingTimelineResponse();
+            BookingFullResponse.BookingTimelineResponse t =
+                    new BookingFullResponse.BookingTimelineResponse();
             t.setPaymentTime(timeline.getPaymentTime());
             t.setCompletedTime(timeline.getCheckOutTime());
+            t.setCheckinUrl(timeline.getCheckInUrl());
+            t.setCheckoutUrl(timeline.getCheckOutUrl());
             res.setTimeline(t);
         }
 
         return res;
     }
+
 
     @Override
     public PaginationResponse<BookingFullResponse> getMyBookings(String authHeader, int page, int size) {
@@ -420,74 +457,86 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public BookingResponse getBookingById(Long id) {
+    public BookingFullResponse getBookingById(Long id) {
 
         Booking booking = bookingRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Booking not found with id: " + id));
+                .orElseThrow(() ->
+                        new RuntimeException("Booking not found with id: " + id)
+                );
 
-        // ---- DETAIL ----
-        List<BookingDetail> details = bookingDetailRepository.findByBookingId(id);
-
-        List<BookingResponse.BookingDetailResponse> detailResponses =
-                details.stream()
-                        .map(d -> BookingResponse.BookingDetailResponse.builder()
-                                .serviceId(d.getServiceId())
-                                .serviceName(d.getServiceName())
-                                .servicePrice(d.getServicePrice())
-                                .discount(d.getDiscount())
-                                .build())
-                        .toList();
-
-        // ---- PAYMENT ----
-        BookingPayment payment = bookingPaymentRepository.findByBookingId(id);
-
-        BookingResponse.BookingPaymentResponse paymentResponse = null;
-        if (payment != null) {
-            paymentResponse = BookingResponse.BookingPaymentResponse.builder()
-                    .paymentMethod(payment.getPaymentMethod() == null ? null : payment.getPaymentMethod().toString())
-                    .responseCode(payment.getResponseCode())
-                    .build();
-        }
-
-        // ---- TIMELINE ----
-        BookingTimeline timeline = bookingTimelineRepository.findByBookingId(id);
-
-        BookingResponse.BookingTimelineResponse timelineResponse = null;
-        if (timeline != null) {
-            timelineResponse = BookingResponse.BookingTimelineResponse.builder()
-                    .bookingTime(timeline.getBookingTime())
-                    .checkInUrl(timeline.getCheckInUrl())
-                    .checkInTime(timeline.getCheckInTime())
-                    .checkOutUrl(timeline.getCheckOutUrl())
-                    .checkOutTime(timeline.getCheckOutTime())
-                    .paymentTime(timeline.getPaymentTime())
-                    .inProgressTime(timeline.getInProgressTime())
-                    .cancelTime(timeline.getCancelTime())
-                    .noShowTime(timeline.getNoShowTime())
-                    .failTime(timeline.getFailTime())
-                    .build();
-        }
-
-        // ---- BUILD RESPONSE ----
-        return BookingResponse.builder()
-                .id(booking.getId())
-                .userId(booking.getUserId())
-                .hamsterId(booking.getHamsterId())
-                .bookingDate(booking.getBookingDate())
-                .startTime(booking.getStartTime())
-                .endTime(booking.getEndTime())
-                .totalBasePrice(booking.getTotalBasePrice())
-                .totalFinalPrice(booking.getTotalFinalPrice())
-                .status(booking.getStatus())
-                .details(detailResponses)
-                .payment(paymentResponse)
-                .timeline(timelineResponse)
-                .paymentUrl(null) // nếu có URL thanh toán thì set here
-                .build();
+        return mapToFullResponse(booking);
     }
 
+
+//    @Override
+//    public BookingResponse getBookingById(Long id) {
+//
+//        Booking booking = bookingRepository.findById(id)
+//                .orElseThrow(() -> new RuntimeException("Booking not found with id: " + id));
+//
+//        // ---- DETAIL ----
+//        List<BookingDetail> details = bookingDetailRepository.findByBookingId(id);
+//
+//        List<BookingResponse.BookingDetailResponse> detailResponses =
+//                details.stream()
+//                        .map(d -> BookingResponse.BookingDetailResponse.builder()
+//                                .serviceId(d.getServiceId())
+//                                .serviceName(d.getServiceName())
+//                                .servicePrice(d.getServicePrice())
+//                                .discount(d.getDiscount())
+//                                .build())
+//                        .toList();
+//
+//        // ---- PAYMENT ----
+//        BookingPayment payment = bookingPaymentRepository.findByBookingId(id);
+//
+//        BookingResponse.BookingPaymentResponse paymentResponse = null;
+//        if (payment != null) {
+//            paymentResponse = BookingResponse.BookingPaymentResponse.builder()
+//                    .paymentMethod(payment.getPaymentMethod() == null ? null : payment.getPaymentMethod().toString())
+//                    .responseCode(payment.getResponseCode())
+//                    .build();
+//        }
+//
+//        // ---- TIMELINE ----
+//        BookingTimeline timeline = bookingTimelineRepository.findByBookingId(id);
+//
+//        BookingResponse.BookingTimelineResponse timelineResponse = null;
+//        if (timeline != null) {
+//            timelineResponse = BookingResponse.BookingTimelineResponse.builder()
+//                    .bookingTime(timeline.getBookingTime())
+//                    .checkInUrl(timeline.getCheckInUrl())
+//                    .checkInTime(timeline.getCheckInTime())
+//                    .checkOutUrl(timeline.getCheckOutUrl())
+//                    .checkOutTime(timeline.getCheckOutTime())
+//                    .paymentTime(timeline.getPaymentTime())
+//                    .inProgressTime(timeline.getInProgressTime())
+//                    .cancelTime(timeline.getCancelTime())
+//                    .noShowTime(timeline.getNoShowTime())
+//                    .failTime(timeline.getFailTime())
+//                    .build();
+//        }
+//
+//        // ---- BUILD RESPONSE ----
+//        return BookingResponse.builder()
+//                .id(booking.getId())
+//                .userId(booking.getUserId())
+//                .hamsterId(booking.getHamsterId())
+//                .bookingDate(booking.getBookingDate())
+//                .startTime(booking.getStartTime())
+//                .endTime(booking.getEndTime())
+//                .totalBasePrice(booking.getTotalBasePrice())
+//                .totalFinalPrice(booking.getTotalFinalPrice())
+//                .status(booking.getStatus())
+//                .details(detailResponses)
+//                .payment(paymentResponse)
+//                .timeline(timelineResponse)
+//                .paymentUrl(null) // nếu có URL thanh toán thì set here
+//                .build();
+//    }
+
     @Override
-    public BookingResponse updateStatus(Long id, String status) {
+    public BookingFullResponse updateStatus(Long id, String status) {
 
         Booking booking = bookingRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Booking not found with id: " + id));
@@ -528,7 +577,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public BookingResponse checkIn(Long id, BookingCheckRequest req) {
+    public BookingFullResponse checkIn(Long id, BookingCheckRequest req) {
 
         if (req.getImageUrl() == null || req.getImageUrl().isBlank()) {
             throw new RuntimeException("Check-in image is required");
@@ -556,7 +605,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public BookingResponse checkOut(Long id, BookingCheckRequest req) {
+    public BookingFullResponse checkOut(Long id, BookingCheckRequest req) {
 
         if (req.getImageUrl() == null || req.getImageUrl().isBlank()) {
             throw new RuntimeException("Check-out image is required");

@@ -119,14 +119,81 @@ $soft-bg: #fff9f6;
         font-size: 14px;
       }
     }
+
+    .selected-badge {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: $primary;
+      color: white;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    position: relative;
+  }
+
+  .selected-summary {
+    margin-top: 20px;
+    padding: 16px;
+    background: $primary-bg;
+    border-radius: 12px;
+    border: 2px solid $border;
+
+    h4 {
+      color: $primary;
+      margin: 0 0 12px 0;
+      font-size: 15px;
+    }
+
+    .selected-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .selected-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: white;
+      padding: 8px 12px;
+      border-radius: 20px;
+      border: 1px solid $border;
+      font-size: 14px;
+
+      button {
+        background: $danger;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        cursor: pointer;
+        font-size: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        &:hover {
+          background: darken($danger, 10%);
+        }
+      }
+    }
   }
 }
 
 /* ===========================================
-   STEP 2 — WEEKLY SCHEDULE
+   STEP 1 — SCHEDULE (previously step 2)
 =========================================== */
 
-.step2 {
+.step1 {
   margin-top: 10px;
 
   /* WEEK NAV */
@@ -353,68 +420,406 @@ $soft-bg: #fff9f6;
 }
 
 /* ===========================================
-   STEP 3 — HAMSTER
+   STEP 2 — HAMSTER & SERVICES
 =========================================== */
 
-.step3 {
-  .hamster-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 22px;
+.step2 {
+  .step-desc {
+    color: #666;
+    margin-bottom: 20px;
+    font-size: 14px;
   }
 
-  .hamster-card {
-    background: white;
-    padding: 12px;
-    border-radius: 14px;
-    border: 2px solid $border;
+  .empty-message {
+    text-align: center;
+    padding: 40px;
+    color: #999;
+    font-size: 16px;
+  }
+
+  .hamster-booking-list {
     display: flex;
-    gap: 14px;
-    cursor: pointer;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .hamster-booking-card {
+    background: white;
+    border-radius: 16px;
+    border: 2px solid $border;
+    overflow: hidden;
     transition: 0.2s;
 
     &:hover {
-      border-color: $primary;
-      box-shadow: 0 10px 24px rgba(255, 111, 60, 0.22);
+      border-color: $primary-light;
+      box-shadow: 0 4px 12px rgba(255, 111, 60, 0.15);
     }
 
     &.active {
       border-color: $primary;
-      border-width: 3px;
-      box-shadow: 0 10px 24px rgba(255, 111, 60, 0.35);
-      background: lighten($primary-bg, 2%);
+      box-shadow: 0 6px 20px rgba(255, 111, 60, 0.25);
     }
 
-    img {
-      width: 90px;
-      height: 80px;
-      object-fit: cover;
-      border-radius: 10px;
+    .hamster-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px;
+      cursor: pointer;
+      background: $soft-bg;
+      transition: 0.2s;
+
+      &:hover {
+        background: $primary-bg;
+      }
     }
+
+    .hamster-info-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .hamster-checkbox {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 2px solid $border;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      color: white;
+      background: white;
+      transition: 0.2s;
+    }
+
+    &.active .hamster-checkbox {
+      background: $primary;
+      border-color: $primary;
+    }
+
+    .hamster-avatar {
+      width: 60px;
+      height: 60px;
+      border-radius: 12px;
+      object-fit: cover;
+      border: 2px solid $border;
+    }
+
+    .hamster-details {
+      h4 {
+        margin: 0 0 4px 0;
+        color: $primary;
+        font-weight: 700;
+        font-size: 16px;
+      }
+
+      p {
+        margin: 0;
+        color: #666;
+        font-size: 13px;
+      }
+    }
+
+    .service-count {
+      background: $primary-bg;
+      color: $primary;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .hamster-services {
+      padding: 16px;
+      background: white;
+      border-top: 1px solid $border;
+
+      h5 {
+        margin: 0 0 12px 0;
+        color: $text;
+        font-size: 14px;
+      }
+
+      .warning-text {
+        color: $danger;
+        font-size: 13px;
+        margin-top: 10px;
+      }
+    }
+
+    /* Service Tabs */
+    .service-tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 16px;
+
+      .tab-btn {
+        padding: 8px 16px;
+        background: $primary-bg;
+        border: 2px solid transparent;
+        border-radius: 20px;
+        color: $primary-light;
+        font-weight: 600;
+        font-size: 13px;
+        cursor: pointer;
+        transition: 0.2s;
+
+        &:hover {
+          color: $primary;
+          border-color: $primary-light;
+        }
+
+        &.active {
+          background: $primary;
+          color: white;
+          border-color: $primary;
+        }
+      }
+    }
+
+    /* Service List */
+    .service-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-height: 300px;
+      overflow-y: auto;
+      padding-right: 8px;
+
+      &::-webkit-scrollbar {
+        width: 6px;
+      }
+
+      &::-webkit-scrollbar-track {
+        background: $primary-bg;
+        border-radius: 10px;
+      }
+
+      &::-webkit-scrollbar-thumb {
+        background: $primary-light;
+        border-radius: 10px;
+
+        &:hover {
+          background: $primary;
+        }
+      }
+    }
+
+    .service-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      background: $soft-bg;
+      border: 2px solid $border;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: 0.2s;
+
+      &:hover {
+        border-color: $primary-light;
+        background: $primary-bg;
+      }
+
+      &.selected {
+        border-color: $primary;
+        background: lighten($primary-bg, 2%);
+        box-shadow: 0 4px 12px rgba(255, 111, 60, 0.15);
+
+        .service-item-check {
+          background: $primary;
+          color: white;
+          border-color: $primary;
+        }
+      }
+
+      .service-item-check {
+        width: 28px;
+        height: 28px;
+        min-width: 28px;
+        border-radius: 50%;
+        border: 2px solid $border;
+        background: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 14px;
+        color: $primary-light;
+        transition: 0.2s;
+      }
+
+      .service-item-img {
+        width: 50px;
+        height: 50px;
+        border-radius: 8px;
+        object-fit: cover;
+        border: 1px solid $border;
+      }
+
+      .service-item-info {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+
+        .service-item-name {
+          font-weight: 600;
+          font-size: 14px;
+          color: $text;
+        }
+
+        .service-item-combo-children {
+          font-size: 12px;
+          color: #888;
+        }
+      }
+
+      .service-item-price {
+        font-weight: 700;
+        font-size: 14px;
+        color: $primary;
+      }
+    }
+
+    /* Selected services summary */
+    .hamster-selected-services {
+      margin-top: 16px;
+      padding: 12px;
+      background: $primary-bg;
+      border-radius: 10px;
+
+      strong {
+        display: block;
+        margin-bottom: 8px;
+        color: $primary;
+        font-size: 13px;
+      }
+
+      .selected-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 10px;
+      }
+
+      .selected-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        background: white;
+        border: 1px solid $border;
+        border-radius: 20px;
+        font-size: 13px;
+
+        button {
+          background: $danger;
+          color: white;
+          border: none;
+          border-radius: 50%;
+          width: 18px;
+          height: 18px;
+          cursor: pointer;
+          font-size: 11px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+
+          &:hover {
+            background: darken($danger, 10%);
+          }
+        }
+      }
+
+      .hamster-subtotal {
+        font-weight: 700;
+        color: $primary;
+        font-size: 14px;
+        text-align: right;
+      }
+    }
+  }
+
+  /* Booking Summary */
+  .booking-summary {
+    margin-top: 24px;
+    padding: 20px;
+    background: $primary-bg;
+    border-radius: 14px;
+    border: 2px solid $border;
 
     h4 {
+      margin: 0 0 16px 0;
       color: $primary;
-      font-weight: 700;
-      margin: 0 0 4px 0;
+      font-size: 16px;
     }
 
-    p {
-      margin: 2px 0;
+    .summary-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid $border;
+
+      &:last-of-type {
+        border-bottom: none;
+      }
+
+      .summary-hamster {
+        font-weight: 700;
+        min-width: 120px;
+      }
+
+      .summary-services {
+        flex: 1;
+        color: #666;
+        font-size: 14px;
+      }
+
+      .summary-price {
+        font-weight: 700;
+        color: $primary;
+      }
+    }
+
+    .summary-total {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 2px dashed $border;
+      font-size: 18px;
+      font-weight: 700;
+
+      .total-price {
+        color: $primary;
+        font-size: 22px;
+      }
     }
   }
 }
 
 /* ===========================================
-   STEP 4 — CONFIRMATION
+   STEP 3 — CONFIRMATION
 =========================================== */
 
-.step4 {
+.step3 {
   .confirm-box {
     background: white;
     padding: 32px;
     border: 2px solid $border;
     border-radius: 16px;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  }
+
+  .confirm-section {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
   }
 
   .confirm-row {
@@ -445,30 +850,271 @@ $soft-bg: #fff9f6;
       color: $text;
       padding-left: 26px;
 
-      &.hamster-value {
+      &.price-value {
+        font-weight: 700;
+        color: $primary;
+        font-size: 24px;
         display: flex;
         align-items: center;
         gap: 12px;
 
-        img {
-          width: 50px;
-          height: 50px;
-          border-radius: 50%;
-          object-fit: cover;
-          border: 2px solid $border;
-        }
-
-        span {
-          font-weight: 600;
+        .price-note {
+          font-size: 14px;
+          color: #888;
+          font-weight: 400;
         }
       }
+    }
+
+    // Booking item styles for confirmation
+    .confirm-booking-item {
+      background: $soft-bg;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 12px;
+      border: 1px solid $border;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+
+      .booking-item-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 12px;
+        padding-bottom: 12px;
+        border-bottom: 1px dashed $border;
+      }
+
+      .booking-item-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid $border;
+      }
+
+      .booking-item-name {
+        font-weight: 700;
+        color: $primary;
+        font-size: 16px;
+      }
+
+      .booking-item-services {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+
+        li {
+          padding: 6px 0;
+          font-size: 14px;
+          color: $text;
+
+          strong {
+            color: $primary;
+          }
+        }
+      }
+
+      .booking-item-subtotal {
+        margin-top: 12px;
+        padding-top: 12px;
+        border-top: 1px solid $border;
+        text-align: right;
+        font-weight: 600;
+        color: $primary;
+      }
+    }
+  }
+
+  .total-section {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 2px dashed $border;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .confirm-row {
+      grid-template-columns: 1fr;
+    }
+  }
+}
+
+/* ===========================================
+   STEP 4 — CONFIRMATION (deprecated, kept for compatibility)
+=========================================== */
+
+.step4 {
+  .confirm-box {
+    background: white;
+    padding: 32px;
+    border: 2px solid $border;
+    border-radius: 16px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  }
+
+  .confirm-section {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .confirm-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+
+  .confirm-col {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .confirm-item {
+    .confirm-label {
+      font-weight: 700;
+      color: $primary;
+      font-size: 15px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .confirm-value {
+      font-size: 16px;
+      color: $text;
+      padding-left: 26px;
 
       &.price-value {
         font-weight: 700;
         color: $primary;
-        font-size: 18px;
+        font-size: 24px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+
+        .price-note {
+          font-size: 14px;
+          color: #888;
+          font-weight: 400;
+        }
       }
     }
+
+    .hamster-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .hamster-chip {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: $primary-bg;
+      padding: 8px 14px;
+      border-radius: 25px;
+      border: 1px solid $border;
+
+      img {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid $border;
+      }
+
+      span {
+        font-weight: 600;
+        color: $text;
+      }
+    }
+
+    .service-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+
+      li {
+        padding: 8px 0;
+        border-bottom: 1px solid $border;
+
+        &:last-child {
+          border-bottom: none;
+        }
+      }
+    }
+
+    // New booking item styles
+    .confirm-booking-item {
+      background: $soft-bg;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 12px;
+      border: 1px solid $border;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+
+      .booking-item-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 12px;
+        padding-bottom: 12px;
+        border-bottom: 1px dashed $border;
+      }
+
+      .booking-item-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid $border;
+      }
+
+      .booking-item-name {
+        font-weight: 700;
+        color: $primary;
+        font-size: 16px;
+      }
+
+      .booking-item-services {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+
+        li {
+          padding: 6px 0;
+          font-size: 14px;
+          color: $text;
+
+          strong {
+            color: $primary;
+          }
+        }
+      }
+
+      .booking-item-subtotal {
+        margin-top: 12px;
+        padding-top: 12px;
+        border-top: 1px solid $border;
+        text-align: right;
+        font-weight: 600;
+        color: $primary;
+      }
+    }
+  }
+
+  .total-section {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 2px dashed $border;
   }
 
   /* Responsive */

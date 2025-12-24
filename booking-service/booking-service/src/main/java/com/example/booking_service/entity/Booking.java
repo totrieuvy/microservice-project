@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.Date;
+import java.util.List;
 
 @Entity
 @AllArgsConstructor
@@ -18,7 +19,9 @@ public class Booking {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String userId;
-    private String hamsterId;
+
+//    private String hamsterId;
+
     private Date bookingDate;
     private String staffId;
 
@@ -35,4 +38,7 @@ public class Booking {
 
     @Temporal(TemporalType.TIMESTAMP)
     private Date expiredAt;
+
+    @OneToMany(mappedBy = "booking", cascade = CascadeType.ALL)
+    private List<BookingItem> items;
 }

@@ -24,6 +24,8 @@ public class CreateSingleGroomingRequest {
     private String description;
     private String imageUrl;
 
+    private Integer discount;
+
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private Date startDate;
 

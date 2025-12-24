@@ -21,11 +21,16 @@ const CLOUDINARY_CLOUD_NAME = "duikwluky";
 const CLOUDINARY_UPLOAD_PRESET = "hamster_unsigned";
 const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`;
 
-interface BookingDetail {
+interface ServiceDetail {
   serviceId: number;
   serviceName: string;
   servicePrice: number;
   discount: number;
+}
+
+interface BookingItem {
+  hamsterId: string;
+  services: ServiceDetail[];
 }
 
 interface Payment {
@@ -34,29 +39,29 @@ interface Payment {
 }
 
 interface Timeline {
-  checkInUrl: string | null;
-  checkInTime: string | null;
-  checkOutUrl: string | null;
-  checkOutTime: string | null;
+  bookingTime: string | null;
   paymentTime: string | null;
+  checkInTime: string | null;
+  checkOutTime: string | null;
+  completedTime: string | null;
   inProgressTime: string | null;
-  completedTime: string | null; // Assuming this might still exist or be added back
   cancelTime: string | null;
   noShowTime: string | null;
   failTime: string | null;
+  checkinUrl: string | null; // lowercase from API
+  checkoutUrl: string | null; // lowercase from API
 }
 
 interface Booking {
   id: number;
   userId: string;
-  hamsterId: string;
   bookingDate: string;
   startTime: string;
   endTime: string;
   totalBasePrice: number;
   totalFinalPrice: number;
   status: string;
-  details: BookingDetail[];
+  items: BookingItem[];
   payment: Payment | null;
   timeline: Timeline | null;
 }
@@ -272,7 +277,7 @@ function ManageDetailAppointment() {
       dataIndex: "servicePrice",
       key: "price",
       align: "right" as const,
-      render: (price: number) => `${price.toLocaleString("vi-VN")}₫`,
+      render: (price: number) => `${price?.toLocaleString("vi-VN")}₫`,
     },
     {
       title: "Giảm giá",
@@ -281,7 +286,27 @@ function ManageDetailAppointment() {
       align: "center" as const,
       render: (discount: number) => (discount ? `${discount}%` : "-"),
     },
+    {
+      title: "Thành tiền",
+      key: "total",
+      align: "right" as const,
+      render: (_: any, record: ServiceDetail) => {
+        return `${record.servicePrice?.toLocaleString("vi-VN")}₫`;
+      },
+    },
   ];
+
+  // Get all hamster IDs from items
+  const getHamsterIds = () => {
+    return data.items?.map((item) => item.hamsterId) || [];
+  };
+
+  // Calculate subtotal for a hamster
+  const getHamsterSubtotal = (item: BookingItem) => {
+    return item.services.reduce((acc, s) => {
+      return acc + (s.servicePrice || 0);
+    }, 0);
+  };
 
   return (
     <div className="manage-detail-appointment">
@@ -387,50 +412,68 @@ function ManageDetailAppointment() {
 
           <div className="card-box">
             <div className="section-title">
-              <ShoppingOutlined /> Chi tiết dịch vụ
+              <ShoppingOutlined /> Chi tiết dịch vụ ({data.items?.length || 0} hamster)
             </div>
-            <Table
-              dataSource={data.details}
-              columns={columnsService}
-              pagination={false}
-              rowKey="serviceId"
-              bordered
-              summary={() => (
-                <Table.Summary.Row>
-                  <Table.Summary.Cell index={0} colSpan={2}>
-                    <span style={{ fontWeight: 600 }}>Tổng tạm tính</span>
-                  </Table.Summary.Cell>
-                  <Table.Summary.Cell index={1} align="right">
-                    <span style={{ fontWeight: 600 }}>{data.totalFinalPrice.toLocaleString("vi-VN")}₫</span>
-                  </Table.Summary.Cell>
-                </Table.Summary.Row>
-              )}
-            />
+
+            {data.items?.map((item, index) => (
+              <div key={item.hamsterId} className="hamster-service-section">
+                <div className="hamster-section-header">
+                  <Tag color="blue" style={{ fontSize: 14, padding: "4px 12px" }}>
+                    🐹 Hamster #{item.hamsterId}
+                  </Tag>
+                  <span className="service-count">{item.services.length} dịch vụ</span>
+                </div>
+                <Table
+                  dataSource={item.services}
+                  columns={columnsService}
+                  pagination={false}
+                  rowKey="serviceId"
+                  size="small"
+                  summary={() => (
+                    <Table.Summary.Row>
+                      <Table.Summary.Cell index={0} colSpan={3}>
+                        <span style={{ fontWeight: 600 }}>Tổng phụ Hamster #{item.hamsterId}</span>
+                      </Table.Summary.Cell>
+                      <Table.Summary.Cell index={1} align="right">
+                        <span style={{ fontWeight: 600, color: "#1890ff" }}>
+                          {getHamsterSubtotal(item).toLocaleString("vi-VN")}₫
+                        </span>
+                      </Table.Summary.Cell>
+                    </Table.Summary.Row>
+                  )}
+                />
+                {index < data.items.length - 1 && <div className="section-divider" />}
+              </div>
+            ))}
 
             <div className="total-price-box">
               <span className="label">Tổng cộng thanh toán:</span>
-              <span className="value">{data.totalFinalPrice.toLocaleString("vi-VN")}₫</span>
+              <span className="value">{data.totalFinalPrice?.toLocaleString("vi-VN")}₫</span>
             </div>
           </div>
 
-          {(data.timeline?.checkInUrl || data.timeline?.checkOutUrl) && (
+          {(data.timeline?.checkinUrl || data.timeline?.checkoutUrl) && (
             <div className="card-box">
               <div className="section-title">
                 <CameraOutlined /> Hình ảnh thực tế
               </div>
               <div className="image-gallery">
-                {data.timeline.checkInUrl && (
+                {data.timeline.checkinUrl && (
                   <div className="image-item">
                     <p>Ảnh Check-in</p>
-                    <Image width={"100%"} src={data.timeline.checkInUrl} />
-                    <span>{new Date(data.timeline.checkInTime!).toLocaleString("vi-VN")}</span>
+                    <Image src={data.timeline.checkinUrl} />
+                    {data.timeline.checkInTime && (
+                      <span>{new Date(data.timeline.checkInTime).toLocaleString("vi-VN")}</span>
+                    )}
                   </div>
                 )}
-                {data.timeline.checkOutUrl && (
+                {data.timeline.checkoutUrl && (
                   <div className="image-item">
                     <p>Ảnh Check-out</p>
-                    <Image width={"100%"} src={data.timeline.checkOutUrl} />
-                    <span>{new Date(data.timeline.checkOutTime!).toLocaleString("vi-VN")}</span>
+                    <Image width={"100%"} src={data.timeline.checkoutUrl} />
+                    {data.timeline.checkOutTime && (
+                      <span>{new Date(data.timeline.checkOutTime).toLocaleString("vi-VN")}</span>
+                    )}
                   </div>
                 )}
               </div>
@@ -465,11 +508,12 @@ function ManageDetailAppointment() {
                   : "Chưa thanh toán"}
               </Descriptions.Item>
               <Descriptions.Item label="Trạng thái">
-                <span
+                {/* <span
                   style={{ color: ["PAID", "REFUNDED"].includes(data.status) ? "green" : "orange", fontWeight: 600 }}
                 >
                   {["PAID", "REFUNDED"].includes(data.status) ? "Thành công" : "Đang xử lý"}
-                </span>
+                </span> */}
+                <span style={{ fontWeight: 600 }}>{getStatusText(data.status)}</span>
               </Descriptions.Item>
             </Descriptions>
           </div>
@@ -482,8 +526,14 @@ function ManageDetailAppointment() {
               <Descriptions.Item label="Email khách hàng">
                 <b>{data.userId}</b>
               </Descriptions.Item>
-              <Descriptions.Item label="Hamster ID">
-                <Tag color="blue">#{data.hamsterId}</Tag>
+              <Descriptions.Item label={`Hamster (${getHamsterIds().length})`}>
+                <div className="hamster-tags">
+                  {getHamsterIds().map((id) => (
+                    <Tag key={id} color="blue" style={{ marginBottom: 4 }}>
+                      🐹 #{id}
+                    </Tag>
+                  ))}
+                </div>
               </Descriptions.Item>
               <Descriptions.Item label="Ngày & Giờ">
                 <div>{new Date(data.bookingDate).toLocaleDateString("vi-VN")}</div>

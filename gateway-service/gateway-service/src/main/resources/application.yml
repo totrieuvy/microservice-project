@@ -21,6 +21,7 @@ spring:
           '[/**]':
             allowedOrigins:
               - http://localhost:5173
+              - http://localhost:5173/lich-lam-dep
             allowedMethods:
               - GET
               - POST
@@ -31,13 +32,6 @@ spring:
             allowCredentials: true
 
       routes:
-        - id: preflight-cors
-          uri: no://op
-          predicates:
-            - Path=/api/**
-            - Method=OPTIONS
-          filters:
-            - SetStatus=200
         - id: auth-login
           uri: lb://auth-service
           predicates:
@@ -86,7 +80,7 @@ spring:
         - id: grooming-service
           uri: lb://grooming-service
           predicates:
-            - Path=/api/services, /api/services/**
+            - Path=/api/services, /api/services/**, /websocket/**, /websocket/info, /websocket/info/**
 
         - id: appointment-service
           uri: lb://appointment-service

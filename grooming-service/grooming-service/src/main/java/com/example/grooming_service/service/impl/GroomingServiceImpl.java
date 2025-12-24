@@ -33,8 +33,9 @@ public class GroomingServiceImpl implements GroomingService {
         service.setServiceName(createGroomingRequest.getServiceName());
         service.setType(GroomingEnum.SINGLE);
         service.setBasePrice(createGroomingRequest.getBasePrice());
-        service.setDiscount(0);
-        service.setFinalPrice(createGroomingRequest.getBasePrice());
+        service.setDiscount(createGroomingRequest.getDiscount());
+        service.setFinalPrice(createGroomingRequest.getBasePrice() -
+                (createGroomingRequest.getBasePrice() * (createGroomingRequest.getDiscount() != null ? createGroomingRequest.getDiscount() : 0) / 100.0));
         service.setDescription(createGroomingRequest.getDescription());
         service.setImageUrl(createGroomingRequest.getImageUrl());
         service.setStartDate(createGroomingRequest.getStartDate());

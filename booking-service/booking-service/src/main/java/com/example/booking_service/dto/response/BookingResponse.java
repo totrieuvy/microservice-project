@@ -13,7 +13,6 @@ public class BookingResponse {
 
     private Long id;
     private String userId;
-    private String hamsterId;
 
     private Date bookingDate;
     private String startTime;
@@ -24,20 +23,29 @@ public class BookingResponse {
 
     private BookingStatus status;
 
-    private List<BookingDetailResponse> details;
+    // 🔥 NEW: nhiều hamster
+    private List<BookingItemResponse> items;
 
     private BookingPaymentResponse payment;
     private BookingTimelineResponse timeline;
     private String paymentUrl;
 
-
-
     // --------------------------
-    // DETAIL RESPONSE
+    // HAMSTER LEVEL
     // --------------------------
     @Data
     @Builder
-    public static class BookingDetailResponse {
+    public static class BookingItemResponse {
+        private String hamsterId;
+        private List<ServiceResponse> services;
+    }
+
+    // --------------------------
+    // SERVICE LEVEL
+    // --------------------------
+    @Data
+    @Builder
+    public static class ServiceResponse {
         private Long serviceId;
         private String serviceName;
         private Double servicePrice;
@@ -69,7 +77,6 @@ public class BookingResponse {
         private Date inProgressTime;
         private Date cancelTime;
         private Date noShowTime;
-        private String failTime;
+        private Date failTime;
     }
 }
-

@@ -1,5 +1,5 @@
 import "./header.scss";
-import logo from "../../assets/logo.png";
+import logo from "../../assets/logo2.jpg";
 import navigation from "../../constants/navigation";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";

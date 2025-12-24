@@ -21,6 +21,7 @@ import java.util.List;
 
 
 @Component
+@Order(-1)
 public class AuthenticationFilter implements GlobalFilter {
 
     // Thêm Logger để debug
@@ -31,40 +32,79 @@ public class AuthenticationFilter implements GlobalFilter {
             "/api/auth/register",
             "/api/auth/verify-otp",
             "/api/services",
-            "/api/payments/vnpay-ipn"
+            "/api/payments/vnpay-ipn",
+            "/websocket"
     );
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 
-        String path = exchange.getRequest().getURI().getPath().toLowerCase();
+        ServerHttpRequest request = exchange.getRequest();
+        String path = request.getURI().getPath().toLowerCase();
 
-        // Log để xem path thực sự là gì
-        log.info("Request path received: {}", path);
-
-        if (isPublicApi(path)) {
-            log.info("Path is public: {}. Allowing request...", path);
+        // ✅ BYPASS TOÀN BỘ WEBSOCKET HANDSHAKE
+        String upgrade = request.getHeaders().getFirst("Upgrade");
+        if (upgrade != null && upgrade.equalsIgnoreCase("websocket")) {
+            log.info("WebSocket handshake detected. Bypassing auth filter for path: {}", path);
             return chain.filter(exchange);
         }
 
-        log.warn("Path is private: {}. Checking authorization...", path);
+        // ✅ BYPASS SOCKJS INFO / POLLING
+        if (path.startsWith("/websocket")) {
+            log.info("SockJS endpoint detected. Bypassing auth filter for path: {}", path);
+            return chain.filter(exchange);
+        }
 
-        String authHeader = exchange.getRequest().getHeaders().getFirst("Authorization");
+        // ===== REST API AUTH =====
+        if (isPublicApi(path)) {
+            return chain.filter(exchange);
+        }
+
+        String authHeader = request.getHeaders().getFirst("Authorization");
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            log.warn("Missing or invalid Authorization header for path: {}", path);
             return unauthorized(exchange, "Missing or invalid Authorization header");
         }
 
         String token = authHeader.substring(7);
-
         if (token.length() < 10) {
-            log.warn("Invalid Token for path: {}", path);
             return unauthorized(exchange, "Invalid Token");
         }
 
-        log.info("Token validated. Forwarding request for path: {}", path);
         return chain.filter(exchange);
     }
+
+
+//    @Override
+//    public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+//
+//        String path = exchange.getRequest().getURI().getPath().toLowerCase();
+//
+//        // Log để xem path thực sự là gì
+//        log.info("Request path received: {}", path);
+//
+//        if (isPublicApi(path)) {
+//            log.info("Path is public: {}. Allowing request...", path);
+//            return chain.filter(exchange);
+//        }
+//
+//        log.warn("Path is private: {}. Checking authorization...", path);
+//
+//        String authHeader = exchange.getRequest().getHeaders().getFirst("Authorization");
+//        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+//            log.warn("Missing or invalid Authorization header for path: {}", path);
+//            return unauthorized(exchange, "Missing or invalid Authorization header");
+//        }
+//
+//        String token = authHeader.substring(7);
+//
+//        if (token.length() < 10) {
+//            log.warn("Invalid Token for path: {}", path);
+//            return unauthorized(exchange, "Invalid Token");
+//        }
+//
+//        log.info("Token validated. Forwarding request for path: {}", path);
+//        return chain.filter(exchange);
+//    }
 
     private boolean isPublicApi(String path) {
         // Dùng .anyMatch(api -> path.startsWith(api)) cho rõ ràng

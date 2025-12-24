@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../../../config/axios";
-import { Tag, Spin, Row, Col, Steps, Divider, Button, Descriptions, Table, Image as AntImage } from "antd";
+import { Tag, Spin, Row, Col, Steps, Divider, Button, Descriptions, Table, Image as AntImage, Card } from "antd";
 import {
   ArrowLeftOutlined,
   ShoppingOutlined,
@@ -12,6 +12,18 @@ import {
   CameraOutlined,
 } from "@ant-design/icons";
 import "./BookingHistory.scss";
+
+interface ServiceItem {
+  serviceId: number;
+  serviceName: string;
+  servicePrice: number;
+  discount: number;
+}
+
+interface BookingItem {
+  hamsterId: string;
+  services: ServiceItem[];
+}
 
 interface Timeline {
   bookingTime: string | null;
@@ -27,10 +39,27 @@ interface Timeline {
   failTime: string | null;
 }
 
+interface BookingData {
+  id: number;
+  userId: string;
+  bookingDate: string;
+  startTime: string;
+  endTime: string;
+  totalBasePrice: number;
+  totalFinalPrice: number;
+  status: string;
+  items: BookingItem[];
+  payment: {
+    paymentMethod: string | null;
+    responseCode: string | null;
+  };
+  timeline: Timeline;
+}
+
 function BookingDetailHistory() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<BookingData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
   // Dùng link ảnh online placeholder cho gọn code demo, bạn thay lại bằng base64 của bạn nhé
@@ -140,6 +169,13 @@ function BookingDetailHistory() {
   const columnsService = [
     { title: "Tên dịch vụ", dataIndex: "serviceName", key: "name" },
     {
+      title: "Giảm giá",
+      dataIndex: "discount",
+      key: "discount",
+      align: "center" as const,
+      render: (discount: number) => (discount ? <Tag color="orange">{discount}%</Tag> : "-"),
+    },
+    {
       title: "Đơn giá",
       dataIndex: "servicePrice",
       key: "price",
@@ -147,6 +183,17 @@ function BookingDetailHistory() {
       render: (price: number) => `${price.toLocaleString("vi-VN")}₫`,
     },
   ];
+
+  // Flatten items for summary calculation
+  const getAllServices = () => {
+    if (!data?.items) return [];
+    return data.items.flatMap((item) =>
+      item.services.map((s) => ({
+        ...s,
+        hamsterId: item.hamsterId,
+      }))
+    );
+  };
 
   return (
     <div className="booking-container">
@@ -225,33 +272,67 @@ function BookingDetailHistory() {
             </div>
           </div>
 
-          {/* Chi tiết dịch vụ */}
+          {/* Chi tiết dịch vụ theo từng Hamster */}
           <div className="card-box">
             <div className="section-title">
               <ShoppingOutlined /> Chi tiết dịch vụ
             </div>
-            <Table
-              dataSource={data.details}
-              columns={columnsService}
-              pagination={false}
-              rowKey="serviceId"
-              bordered
-              summary={() => (
-                <Table.Summary.Row>
-                  <Table.Summary.Cell index={0} colSpan={1}>
-                    <span style={{ fontWeight: 600 }}>Tổng tạm tính</span>
-                  </Table.Summary.Cell>
-                  <Table.Summary.Cell index={1} align="right">
-                    {/* Nếu có discount tính logic ở đây, hiện tại hiển thị totalFinal */}
-                    <span style={{ fontWeight: 600 }}>{data.totalFinalPrice.toLocaleString("vi-VN")}₫</span>
-                  </Table.Summary.Cell>
-                </Table.Summary.Row>
-              )}
-            />
+
+            {data.items && data.items.length > 0 ? (
+              data.items.map((item, index) => (
+                <div key={item.hamsterId} className="hamster-service-section">
+                  <div className="hamster-header">
+                    <span className="hamster-icon">🐹</span>
+                    <span className="hamster-name">Hamster #{item.hamsterId}</span>
+                    <Tag color="blue">{item.services.length} dịch vụ</Tag>
+                  </div>
+                  <Table
+                    dataSource={item.services}
+                    columns={columnsService}
+                    pagination={false}
+                    rowKey={(record) => `${item.hamsterId}-${record.serviceId}`}
+                    size="small"
+                    summary={() => {
+                      const subtotal = item.services.reduce((acc, s) => acc + s.servicePrice, 0);
+                      return (
+                        <Table.Summary.Row>
+                          <Table.Summary.Cell index={0} colSpan={2}>
+                            <span style={{ fontWeight: 600 }}>Tổng phụ Hamster #{item.hamsterId}</span>
+                          </Table.Summary.Cell>
+                          <Table.Summary.Cell index={1} align="right">
+                            <span style={{ fontWeight: 600 }}>{subtotal.toLocaleString("vi-VN")}₫</span>
+                          </Table.Summary.Cell>
+                        </Table.Summary.Row>
+                      );
+                    }}
+                  />
+                  {index < data.items.length - 1 && <Divider style={{ margin: "16px 0" }} />}
+                </div>
+              ))
+            ) : (
+              <div style={{ padding: 20, textAlign: "center", color: "#999" }}>Không có dịch vụ nào</div>
+            )}
 
             <div className="total-price-box">
-              <span className="label">Tổng cộng thanh toán:</span>
-              <span className="value">{data.totalFinalPrice.toLocaleString("vi-VN")}₫</span>
+              <div className="price-summary">
+                <div className="summary-row">
+                  <span className="label">Số lượng Hamster:</span>
+                  <span className="value">{data.items?.length || 0}</span>
+                </div>
+                <div className="summary-row">
+                  <span className="label">Tổng số dịch vụ:</span>
+                  <span className="value">{getAllServices().length}</span>
+                </div>
+                <Divider style={{ margin: "12px 0" }} />
+                <div className="summary-row">
+                  <span className="label">Tổng tiền gốc:</span>
+                  <span className="value">{data.totalBasePrice?.toLocaleString("vi-VN")}₫</span>
+                </div>
+                <div className="summary-row total">
+                  <span className="label">Tổng cộng thanh toán:</span>
+                  <span className="value highlight">{data.totalFinalPrice?.toLocaleString("vi-VN")}₫</span>
+                </div>
+              </div>
             </div>
           </div>
 

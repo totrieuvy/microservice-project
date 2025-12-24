@@ -169,20 +169,66 @@ body {
   }
 
   .total-price-box {
-    text-align: right;
-    margin-top: 12px;
-    padding-top: 16px;
-    border-top: 1px dashed $border-color;
+    margin-top: 20px;
+    padding: 20px;
+    background: linear-gradient(135deg, $primary-light, #fff);
+    border-radius: 12px;
+    border: 1px solid rgba($primary, 0.2);
 
-    .label {
-      font-size: 14px;
-      color: $text-secondary;
-      margin-right: 12px;
+    .price-summary {
+      .summary-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 0;
+
+        .label {
+          font-size: 14px;
+          color: $text-secondary;
+        }
+
+        .value {
+          font-size: 14px;
+          font-weight: 600;
+          color: $text-main;
+
+          &.highlight {
+            font-size: 24px;
+            font-weight: 800;
+            color: $primary;
+          }
+        }
+
+        &.total {
+          padding-top: 12px;
+        }
+      }
     }
-    .value {
-      font-size: 24px;
-      font-weight: 800;
-      color: $primary;
+  }
+
+  /* Hamster Service Section */
+  .hamster-service-section {
+    margin-bottom: 16px;
+
+    .hamster-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 16px;
+      background: linear-gradient(135deg, $primary-light, #fff);
+      border-radius: 10px;
+      margin-bottom: 12px;
+      border: 1px solid rgba($primary, 0.15);
+
+      .hamster-icon {
+        font-size: 24px;
+      }
+
+      .hamster-name {
+        font-weight: 700;
+        color: $text-main;
+        font-size: 15px;
+      }
     }
   }
 

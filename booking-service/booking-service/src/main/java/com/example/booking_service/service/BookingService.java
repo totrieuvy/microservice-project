@@ -20,11 +20,13 @@ public interface BookingService {
 
     PaginationResponse<BookingFullResponse> getAllBookings(int page, int size);
 
-    BookingResponse getBookingById(Long id);
+//    BookingResponse getBookingById(Long id);
 
-    BookingResponse updateStatus(Long id, String status);
+    BookingFullResponse getBookingById(Long id);
 
-    BookingResponse checkIn(Long id, BookingCheckRequest bookingCheckRequest);
+    BookingFullResponse updateStatus(Long id, String status);
 
-    BookingResponse checkOut(Long id, BookingCheckRequest bookingCheckRequest);
+    BookingFullResponse checkIn(Long id, BookingCheckRequest bookingCheckRequest);
+
+    BookingFullResponse checkOut(Long id, BookingCheckRequest bookingCheckRequest);
 }

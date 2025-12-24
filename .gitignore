@@ -1,2 +1,6 @@
 booking-service/src/main/resources/firebase-service-account.json
 booking-service/src/main/resources/*.json
+
+# Firebase / GCP secrets
+firebase-service-account.json
+*.json

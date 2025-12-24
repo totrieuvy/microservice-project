@@ -194,6 +194,49 @@ $border-color: #e5e7eb;
       }
     }
   }
+
+  /* Hamster service sections */
+  .hamster-service-section {
+    margin-bottom: 20px;
+
+    .hamster-section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      padding: 12px 16px;
+      background: linear-gradient(135deg, #e6f7ff 0%, #f0f5ff 100%);
+      border-radius: 8px;
+      border-left: 4px solid $primary;
+
+      .service-count {
+        font-size: 13px;
+        color: #666;
+        font-weight: 500;
+      }
+    }
+
+    .ant-table-wrapper {
+      margin-bottom: 0;
+
+      .ant-table {
+        border-radius: 8px;
+        overflow: hidden;
+      }
+    }
+  }
+
+  .section-divider {
+    height: 1px;
+    background: linear-gradient(to right, transparent, $border-color, transparent);
+    margin: 20px 0;
+  }
+
+  .hamster-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
 }
 
 /* Responsive */

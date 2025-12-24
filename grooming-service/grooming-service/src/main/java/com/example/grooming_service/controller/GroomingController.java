@@ -9,7 +9,9 @@ import com.example.grooming_service.service.impl.GroomingServiceImpl;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;      // ✅ đúng
-import org.springframework.data.domain.Pageable;import org.springframework.web.bind.annotation.*;
+import org.springframework.data.domain.Pageable;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.web.bind.annotation.*;
 import com.example.common.ApiResponse;
 
 import java.util.List;
@@ -21,10 +23,12 @@ import java.util.List;
 public class GroomingController {
 
     private final GroomingServiceImpl groomingService;
+    private final SimpMessagingTemplate simpMessagingTemplate;
 
     @PostMapping
     public ApiResponse<CreateSingleGroomingResponse> createSingleService(@Valid @RequestBody CreateSingleGroomingRequest createSingleGroomingRequest) {
         CreateSingleGroomingResponse response = groomingService.createSingleService(createSingleGroomingRequest);
+        simpMessagingTemplate.convertAndSend("/topic/grooming", "CREATE NEW GROOMING");
         return ApiResponse.success("Single grooming service created successfully", response);
     }
 

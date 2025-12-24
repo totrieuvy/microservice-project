@@ -26,6 +26,7 @@ import dayjs from "dayjs";
 import { toast } from "react-toastify";
 
 import "./ManageSingleServices.scss";
+import useRealtime from "../../../hooks/useRealTime";
 
 const CLOUDINARY_CLOUD_NAME = "duikwluky";
 const CLOUDINARY_UPLOAD_PRESET = "hamster_unsigned";
@@ -89,6 +90,10 @@ export default function ManageSingleServices() {
       toast.error("Upload ảnh thất bại!");
     }
   };
+
+  // useRealtime((body) => {
+  //   console.log("Received WebSocket message:", body);
+  // });
 
   // ======================= LOAD ALL SERVICES =======================
   const fetchServices = async () => {

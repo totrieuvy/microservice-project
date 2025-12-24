@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { devtools } from "zustand/middleware";
 
 interface Staff {
   name: string;
@@ -23,19 +24,30 @@ interface ScheduleStore {
   reset: () => void;
 }
 
-export const useScheduleStore = create<ScheduleStore>((set) => ({
-  selectedDate: null,
-  selectedSlot: null,
-  selectedStaff: null,
-
-  setDate: (d) => set({ selectedDate: d }),
-  setSlot: (slot) => set({ selectedSlot: slot }),
-  setStaff: (staff) => set({ selectedStaff: staff }),
-
-  reset: () =>
-    set({
+export const useScheduleStore = create<ScheduleStore>()(
+  devtools<ScheduleStore>(
+    (set) => ({
       selectedDate: null,
       selectedSlot: null,
       selectedStaff: null,
+
+      setDate: (d) => set({ selectedDate: d }, false, "schedule/setDate"),
+      setSlot: (slot) => set({ selectedSlot: slot }, false, "schedule/setSlot"),
+      setStaff: (staff) => set({ selectedStaff: staff }, false, "schedule/setStaff"),
+
+      reset: () =>
+        set(
+          {
+            selectedDate: null,
+            selectedSlot: null,
+            selectedStaff: null,
+          },
+          false,
+          "schedule/reset"
+        ),
     }),
-}));
+    {
+      name: "schedule-store", // 👈 tên hiển thị trong Redux DevTools
+    }
+  )
+);

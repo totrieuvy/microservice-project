@@ -1,0 +1,28 @@
+import React, { useEffect } from "react";
+import SockJS from "sockjs-client";
+import Stomp from "stompjs";
+
+function useRealtime(callback) {
+  // const WS_URL = "http://137.184.153.35:8080/websocket";
+  const WS_URL = "http://localhost:8085/websocket";
+
+  const socket = new SockJS(WS_URL);
+  const stomp = Stomp.over(socket);
+
+  useEffect(() => {
+    const onConnected = () => {
+      console.log("WebSocket connected");
+
+      stomp.subscribe("/topic/grooming", (message) => {
+        console.log("message received: ", message);
+        callback && callback(message);
+      });
+    };
+
+    stomp.connect({}, onConnected, null);
+  }, []);
+
+  return <></>;
+}
+
+export default useRealtime;
