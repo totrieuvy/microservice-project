@@ -1,8 +1,8 @@
 import "./Step2Schedule.scss";
 import { useEffect, useState } from "react";
 import api from "../../../../config/axios";
-import { useServiceStore } from "../../../../zustand/serviceStore";
-import { useScheduleStore } from "../../../../zustand/scheduleStore";
+import { useServiceStore } from "../../../../store/serviceStore";
+import { useScheduleStore } from "../../../../store/scheduleStore";
 import { useNavigate } from "react-router-dom";
 
 function Step2Schedule() {

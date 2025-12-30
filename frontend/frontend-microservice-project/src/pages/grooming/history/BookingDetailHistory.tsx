@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../../../config/axios";
-import { Tag, Spin, Row, Col, Steps, Divider, Button, Descriptions, Table, Image as AntImage, Card } from "antd";
+import { Tag, Spin, Row, Col, Steps, Divider, Button, Descriptions, Table, Image as AntImage } from "antd";
 import {
   ArrowLeftOutlined,
   ShoppingOutlined,
@@ -376,7 +376,7 @@ function BookingDetailHistory() {
               {data.payment?.paymentMethod === "ZALOPAY" && (
                 <img src={IMG_ZALO_PAY} alt="ZALOPAY" className="payment-logo" style={{ height: 60 }} />
               )}
-              {!["VNPAY", "ZALOPAY"].includes(data.payment?.paymentMethod) && (
+              {data.payment?.paymentMethod !== "VNPAY" && data.payment?.paymentMethod !== "ZALOPAY" && (
                 <Tag color="default" style={{ fontSize: 14, padding: "5px 10px" }}>
                   {data.payment?.paymentMethod || "Tiền mặt"}
                 </Tag>

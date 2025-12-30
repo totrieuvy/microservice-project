@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../../config/axios";
 
@@ -18,7 +18,8 @@ import {
 } from "antd";
 
 import { UploadOutlined } from "@ant-design/icons";
-import type { RcFile, UploadFile, UploadRequestOption } from "antd/es/upload";
+import type { RcFile, UploadFile } from "antd/es/upload";
+import type { UploadProps } from "antd";
 
 import dayjs from "dayjs";
 import { toast } from "react-toastify";
@@ -88,11 +89,11 @@ export default function ManageComboServices() {
     return data.secure_url;
   };
 
-  const handleUpload = async (options: UploadRequestOption) => {
+  const handleUpload: UploadProps["customRequest"] = async (options) => {
     const { file, onSuccess, onError } = options;
     try {
       const url = await uploadToCloudinary(file as RcFile);
-      onSuccess?.({ secure_url: url }, new XMLHttpRequest());
+      onSuccess?.({ secure_url: url });
     } catch (err) {
       onError?.(err as Error);
       toast.error("Upload ảnh thất bại!");
@@ -120,6 +121,7 @@ export default function ManageComboServices() {
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchCombos();
     fetchSingleServices();
   }, []);
@@ -142,10 +144,12 @@ export default function ManageComboServices() {
     const start = (page - 1) * size;
     const end = start + size;
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setDisplayed(list.slice(start, end));
   }, [allCombos, searchText, sortPrice, page]);
 
   // ======================= CREATE / UPDATE =======================
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleSubmit = async (values: any) => {
     try {
       const fileList: UploadFile[] = values.image || [];
@@ -174,6 +178,7 @@ export default function ManageComboServices() {
       setEditMode(false);
       setEditingId(null);
       fetchCombos();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       toast.error(err?.response?.data?.message || "Thao tác thất bại");
     }
@@ -270,6 +275,7 @@ export default function ManageComboServices() {
     {
       title: "Hành động",
       align: "center" as const,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       render: (_: any, r: ComboService) => (
         <Space>
           <Button className="btn-green" onClick={() => navigate(`/admin/combos/${r.id}`)}>

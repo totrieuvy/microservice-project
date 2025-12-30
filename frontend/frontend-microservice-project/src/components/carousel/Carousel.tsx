@@ -1,7 +1,9 @@
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, Pagination } from "swiper/modules";
 
+// @ts-expect-error - swiper CSS has no type declarations
 import "swiper/css";
+// @ts-expect-error - swiper CSS has no type declarations
 import "swiper/css/pagination";
 
 import "./Carousel.scss";

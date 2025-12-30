@@ -1,8 +1,8 @@
 import { Outlet } from "react-router-dom";
-import "./profileLayout.scss";
+import "./ProfileLayout.scss";
 import ProfilePanel from "../../components/panel/profilePanel";
 
-function ProfilePage() {
+function ProfileLayout() {
   return (
     <div className="ProfilePage">
       <aside className="ProfilePage__panel">
@@ -16,4 +16,4 @@ function ProfilePage() {
   );
 }
 
-export default ProfilePage;
+export default ProfileLayout;

@@ -53,7 +53,7 @@ $soft-bg: #fff9f6;
 
       &.active {
         border-color: $primary;
-        background: lighten($primary-bg, 4%);
+        background: #fffaf7;
         color: $primary;
         box-shadow: 0px 6px 14px rgba(255, 111, 60, 0.18);
       }
@@ -182,7 +182,7 @@ $soft-bg: #fff9f6;
         justify-content: center;
 
         &:hover {
-          background: darken($danger, 10%);
+          background: #e65c5c;
         }
       }
     }
@@ -625,7 +625,7 @@ $soft-bg: #fff9f6;
 
       &.selected {
         border-color: $primary;
-        background: lighten($primary-bg, 2%);
+        background: #fff7f2;
         box-shadow: 0 4px 12px rgba(255, 111, 60, 0.15);
 
         .service-item-check {
@@ -729,7 +729,7 @@ $soft-bg: #fff9f6;
           justify-content: center;
 
           &:hover {
-            background: darken($danger, 10%);
+            background: #e65c5c;
           }
         }
       }

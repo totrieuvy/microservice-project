@@ -1,9 +1,18 @@
 server:
-  port: 8083
+  port: 8088
 
 spring:
   application:
     name: notification-service
+  kafka:
+    bootstrap-servers: localhost:29092
+    consumer:
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "*"
+        spring.json.use.type.headers: false   # ⭐ quan trọng
+        spring.json.value.default.type: com.example.notification_service.dto.NotificationEvent
 
   mail:
     host: smtp.gmail.com
@@ -36,3 +45,6 @@ management:
     web:
       exposure:
         include: "*"
+
+fcm:
+  default-token: epqtPpC1adD1m5rv0xNRpy:APA91bEK-eiggoOL1qbll2jw-kyv3a6QJEW60K6xPAVdtHwJTHSqIqap175JIlSkulPjRAZ_RfRMc8zN2uWi3x7o627hOUDZlr1ejmfIh-3-Nz8RShs5qNE

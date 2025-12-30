@@ -4,7 +4,7 @@ $vietcap: #00ff00;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 15px 20px;
+  padding: 5px 20px;
 
   position: fixed;
   top: 0;
@@ -22,6 +22,7 @@ $vietcap: #00ff00;
     &__logo {
       width: 150px;
       height: auto;
+      border-radius: 10%;
     }
   }
 

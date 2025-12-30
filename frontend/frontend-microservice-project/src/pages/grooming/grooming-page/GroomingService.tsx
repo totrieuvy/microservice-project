@@ -3,7 +3,7 @@ import "./GroomingService.scss";
 import api from "../../../config/axios";
 import { Steps, Spin } from "antd";
 
-import { useScheduleStore } from "../../../zustand/scheduleStore";
+import { useScheduleStore } from "../../../store/scheduleStore";
 import useRealtime from "../../../hooks/useRealTime";
 
 /* -----------------------------------------------------------

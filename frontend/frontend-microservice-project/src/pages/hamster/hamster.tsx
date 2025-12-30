@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Row, Col, Card, Button, Modal, Form, Input, DatePicker, Select, Upload, message, Spin, Empty } from "antd";
 import { PlusOutlined, UploadOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 import api from "../../config/axios";
-import type { UploadRequestOption, UploadFile } from "antd/es/upload/interface";
-import "./hamster.scss";
+import type { UploadFile, UploadProps } from "antd";
+import "./Hamster.scss";
 import { toast } from "react-toastify";
 
 const { Option } = Select;
@@ -80,13 +80,13 @@ export default function Hamster() {
     return data.secure_url;
   };
 
-  const handleUpload = async (options: UploadRequestOption) => {
+  const handleUpload: UploadProps["customRequest"] = async (options) => {
     const { file, onSuccess, onError } = options;
 
     try {
       const url = await uploadToCloudinary(file as File);
 
-      onSuccess?.({ secure_url: url } as CloudinaryResponse, new XMLHttpRequest());
+      onSuccess?.({ secure_url: url } as CloudinaryResponse);
       message.success("Upload thành công");
     } catch (err) {
       message.error("Upload thất bại");
@@ -131,6 +131,7 @@ export default function Hamster() {
   };
 
   // ====================== ADD HAMSTER ===========================
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleAddFinish = async (values: any) => {
     const fileList: UploadFile[] = values.image || [];
     let imageUrl = "";
@@ -157,13 +158,15 @@ export default function Hamster() {
         fetchHamsters();
       }
     } catch (error) {
-      toast.error("Tạo hamster thất bại: " + error.message);
+      const err = error as Error;
+      toast.error("Tạo hamster thất bại: " + err.message);
     } finally {
       setLoading(false);
     }
   };
 
   // ====================== UPDATE HAMSTER ===========================
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleEditFinish = async (values: any) => {
     if (!editingHamster) return;
 

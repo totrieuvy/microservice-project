@@ -4,7 +4,9 @@ import "./RelatedServices.scss";
 
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Pagination } from "swiper/modules";
+// @ts-expect-error - swiper CSS has no type declarations
 import "swiper/css";
+// @ts-expect-error - swiper CSS has no type declarations
 import "swiper/css/pagination";
 import { Link } from "react-router-dom";
 
@@ -18,13 +20,13 @@ interface Service {
 function RelatedServices({ currentId }: { currentId: number }) {
   const [services, setServices] = useState<Service[]>([]);
 
-  const fetchAll = async () => {
-    const res = await api.get("/services/all");
-    const filtered = res.data.data.filter((s: Service) => s.id !== currentId);
-    setServices(filtered);
-  };
-
   useEffect(() => {
+    const fetchAll = async () => {
+      const res = await api.get("/services/all");
+      const filtered = res.data.data.filter((s: Service) => s.id !== currentId);
+      setServices(filtered);
+    };
+
     fetchAll();
   }, [currentId]);
 

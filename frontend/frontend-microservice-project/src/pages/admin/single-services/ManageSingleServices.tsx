@@ -1,6 +1,6 @@
 // ======================= NEW MANAGE SINGLE SERVICES (NO BE PAGINATION) =======================
 
-import React, { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../../config/axios";
 
@@ -18,15 +18,15 @@ import {
   Space,
   Upload,
 } from "antd";
+import type { UploadProps } from "antd";
 
 import { UploadOutlined } from "@ant-design/icons";
-import type { RcFile, UploadFile, UploadRequestOption } from "antd/es/upload";
+import type { RcFile, UploadFile } from "antd/es/upload";
 
 import dayjs from "dayjs";
 import { toast } from "react-toastify";
 
 import "./ManageSingleServices.scss";
-import useRealtime from "../../../hooks/useRealTime";
 
 const CLOUDINARY_CLOUD_NAME = "duikwluky";
 const CLOUDINARY_UPLOAD_PRESET = "hamster_unsigned";
@@ -56,7 +56,6 @@ export default function ManageSingleServices() {
 
   const [page, setPage] = useState<number>(1);
   const [allServices, setAllServices] = useState<Service[]>([]);
-  const [displayed, setDisplayed] = useState<Service[]>([]);
 
   const [searchText, setSearchText] = useState<string>("");
   const [sortPrice, setSortPrice] = useState<string>("");
@@ -80,11 +79,11 @@ export default function ManageSingleServices() {
     return data.secure_url;
   };
 
-  const handleUpload = async (options: UploadRequestOption) => {
+  const handleUpload: UploadProps["customRequest"] = async (options) => {
     const { file, onSuccess, onError } = options;
     try {
       const url = await uploadToCloudinary(file as RcFile);
-      onSuccess?.({ secure_url: url }, new XMLHttpRequest());
+      onSuccess?.({ secure_url: url });
     } catch (err) {
       onError?.(err as Error);
       toast.error("Upload ảnh thất bại!");
@@ -96,21 +95,22 @@ export default function ManageSingleServices() {
   // });
 
   // ======================= LOAD ALL SERVICES =======================
-  const fetchServices = async () => {
+  const fetchServices = useCallback(async () => {
     try {
       const res = await api.get<{ data: Service[] }>("/services"); // ← YOU MUST CREATE THIS BE ENDPOINT
       setAllServices(res.data.data);
     } catch {
       toast.error("Lỗi tải dữ liệu");
     }
-  };
-
-  useEffect(() => {
-    fetchServices();
   }, []);
 
-  // ======================= FILTER + SORT + PAGINATE FE =======================
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchServices();
+  }, [fetchServices]);
+
+  // ======================= FILTER + SORT + PAGINATE FE =======================
+  const displayed = useMemo(() => {
     let list = [...allServices];
 
     if (searchText.trim()) {
@@ -131,7 +131,7 @@ export default function ManageSingleServices() {
     const start = (page - 1) * size;
     const end = start + size;
 
-    setDisplayed(list.slice(start, end));
+    return list.slice(start, end);
   }, [allServices, searchText, filterActive, sortPrice, page]);
 
   // ======================= TOGGLE ACTIVE =======================
@@ -146,6 +146,7 @@ export default function ManageSingleServices() {
   };
 
   // ======================= CREATE =======================
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleSubmit = async (values: any) => {
     try {
       const fileList: UploadFile[] = values.image || [];
@@ -174,6 +175,7 @@ export default function ManageSingleServices() {
       setEditMode(false);
       setEditingId(null);
       fetchServices();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       toast.error(err?.response?.data?.message || "Thao tác thất bại");
     }
@@ -207,6 +209,7 @@ export default function ManageSingleServices() {
       setEditingId(id);
       setEditMode(true);
       setOpen(true);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (err) {
       toast.error("Lỗi tải dữ liệu");
     }
@@ -239,6 +242,7 @@ export default function ManageSingleServices() {
     {
       title: "Hành động",
       align: "center" as const,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       render: (_: any, r: Service) => (
         <Space>
           <Button className="btn-green" onClick={() => navigate(`/admin/services/${r.id}`)}>

@@ -7,6 +7,7 @@ import { MdDashboard } from "react-icons/md";
 import logo from "../../assets/logo.png";
 
 interface MenuItem {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   icon: any;
   label: string;
   path?: string;
@@ -40,6 +41,7 @@ const decodeTokenSafe = (rawToken: string | null) => {
 /* ====================================================
    🔥 Lấy roles linh hoạt theo mọi kiểu token
    ==================================================== */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const getRolesFromPayload = (payload: any): string[] => {
   if (!payload) return [];
 
@@ -56,7 +58,7 @@ const getRolesFromPayload = (payload: any): string[] => {
   if (Array.isArray(payload.roles)) return payload.roles;
 
   // Comma separated roles
-  if (typeof payload.roles === "string") return payload.roles.split(",").map((r) => r.trim());
+  if (typeof payload.roles === "string") return payload.roles.split(",").map((r: string) => r.trim());
 
   // Spring authorities
   if (Array.isArray(payload.authorities)) return payload.authorities;
@@ -82,6 +84,7 @@ export default function Sidebar() {
     console.log("SIDEBAR - roles:", roles);
 
     if (roles.includes("ADMIN")) {
+      // eslint-disable-next-line react-hooks/immutability
       buildMenu("ADMIN");
     }
     if (roles.includes("USER")) {

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import api from "../../../config/axios";
-import "./register.scss";
+import "./Register.scss";
 import { toast } from "react-toastify";
 import { Link, useNavigate } from "react-router-dom";
 

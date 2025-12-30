@@ -4,6 +4,12 @@ server:
 spring:
   application:
     name: booking-service
+  kafka:
+    bootstrap-servers: localhost:29092
+    producer:
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        spring.json.add.type.headers: false
 
   datasource:
     url: jdbc:postgresql://localhost:5432/booking-service
@@ -22,3 +28,6 @@ eureka:
   instance:
     prefer-ip-address: true
     ip-address: 127.0.0.1
+
+fcm:
+  default-token: epqtPpC1adD1m5rv0xNRpy:APA91bEK-eiggoOL1qbll2jw-kyv3a6QJEW60K6xPAVdtHwJTHSqIqap175JIlSkulPjRAZ_RfRMc8zN2uWi3x7o627hOUDZlr1ejmfIh-3-Nz8RShs5qNE

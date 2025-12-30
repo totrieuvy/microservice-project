@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import api from "../../config/axios";
-import "./information.scss";
+import "./Information.scss";
 
 interface ProfileResponse {
   code: number;

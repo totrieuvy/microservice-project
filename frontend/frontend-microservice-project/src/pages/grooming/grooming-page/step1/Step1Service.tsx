@@ -1,5 +1,5 @@
 import "./Step1Service.scss";
-import { useServiceStore } from "../../../../zustand/serviceStore";
+import { useServiceStore } from "../../../../store/serviceStore";
 import { useNavigate } from "react-router-dom";
 
 function Step1Service({ service }: any) {

@@ -1,7 +1,7 @@
 import "./Step4Confirm.scss";
-import { useServiceStore } from "../../../../zustand/serviceStore";
-import { useScheduleStore } from "../../../../zustand/scheduleStore";
-import { useHamsterStore } from "../../../../zustand/hamsterStore";
+import { useServiceStore } from "../../../../store/serviceStore";
+import { useScheduleStore } from "../../../../store/scheduleStore";
+import { useHamsterStore } from "../../../../store/hamsterStore";
 
 function Step4Confirm() {
   const srv = useServiceStore();

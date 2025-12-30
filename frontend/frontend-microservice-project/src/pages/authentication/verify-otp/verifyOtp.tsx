@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import axios from "axios";
 import api from "../../../config/axios";
-import "./verifyOtp.scss";
+import "./VerifyOtp.scss";
 import { toast } from "react-toastify";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 

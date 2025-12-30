@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import api from "../../../config/axios";
 import { Table, Button, Modal, Form, Select, Tag, Input } from "antd";
 import { toast } from "react-toastify";
-import "../single-services/ManageSingleServices.scss"; // Tái sử dụng file SCSS cũ
+import "../single-services/ManageSingleServices.scss";
 
 const { Option } = Select;
 const { Search } = Input;
@@ -19,7 +19,6 @@ interface Account {
 // ======================= COMPONENT =======================
 export default function ManageAccount() {
   const [accounts, setAccounts] = useState<Account[]>([]);
-  const [displayed, setDisplayed] = useState<Account[]>([]);
 
   // States cho Modal
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -31,23 +30,24 @@ export default function ManageAccount() {
   const [roleFilter, setRoleFilter] = useState("");
 
   // ======================= API CALL =======================
-  const fetchAccounts = async () => {
+  const fetchAccounts = useCallback(async () => {
     try {
       const res = await api.get<{ data: Account[] }>("/auth/accounts");
       // Dữ liệu trả về có dạng { code, message, data: [...] }
       setAccounts(res.data.data);
-      setDisplayed(res.data.data);
-    } catch (err) {
+    } catch (error) {
+      console.error(error);
       toast.error("Lỗi tải danh sách tài khoản");
     }
-  };
-
-  useEffect(() => {
-    fetchAccounts();
   }, []);
 
-  // ======================= FILTERING =======================
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchAccounts();
+  }, [fetchAccounts]);
+
+  // ======================= FILTERING =======================
+  const displayed = useMemo(() => {
     let list = [...accounts];
 
     if (searchText) {
@@ -59,7 +59,7 @@ export default function ManageAccount() {
       list = list.filter((acc) => acc.role === roleFilter);
     }
 
-    setDisplayed(list);
+    return list;
   }, [searchText, roleFilter, accounts]);
 
   // ======================= HANDLE UPDATE ROLE =======================
@@ -69,7 +69,7 @@ export default function ManageAccount() {
     setIsModalOpen(true);
   };
 
-  const handleUpdateRole = async (values: any) => {
+  const handleUpdateRole = async (values: { role: Account["role"] }) => {
     if (!selectedUser) return;
 
     try {
@@ -82,8 +82,9 @@ export default function ManageAccount() {
       setIsModalOpen(false);
       setSelectedUser(null);
       fetchAccounts(); // Load lại data
-    } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Lỗi cập nhật role");
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { message?: string } } };
+      toast.error(error?.response?.data?.message || "Lỗi cập nhật role");
     }
   };
 
@@ -132,7 +133,7 @@ export default function ManageAccount() {
       title: "Hành động",
       key: "action",
       align: "center" as const,
-      render: (_: any, record: Account) => (
+      render: (_: unknown, record: Account) => (
         <Button className="btn-orange" size="small" onClick={() => handleOpenModal(record)}>
           Đổi Role
         </Button>

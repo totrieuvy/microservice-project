@@ -1,7 +1,7 @@
 import "./Step3Hamster.scss";
 import { useEffect, useState } from "react";
 import api from "../../../../config/axios";
-import { useHamsterStore } from "../../../../zustand/hamsterStore";
+import { useHamsterStore } from "../../../../store/hamsterStore";
 import { useNavigate } from "react-router-dom";
 
 function Step3Hamster() {

@@ -1,9 +1,9 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import SockJS from "sockjs-client";
 import Stomp from "stompjs";
+import type { Message } from "stompjs";
 
-function useRealtime(callback) {
-  // const WS_URL = "http://137.184.153.35:8080/websocket";
+function useRealtime(callback?: (message: Message) => void) {
   const WS_URL = "http://localhost:8085/websocket";
 
   const socket = new SockJS(WS_URL);
@@ -13,13 +13,16 @@ function useRealtime(callback) {
     const onConnected = () => {
       console.log("WebSocket connected");
 
-      stomp.subscribe("/topic/grooming", (message) => {
+      stomp.subscribe("/topic/grooming", (message: Message) => {
         console.log("message received: ", message);
-        callback && callback(message);
+        if (callback) {
+          callback(message);
+        }
       });
     };
 
-    stomp.connect({}, onConnected, null);
+    stomp.connect({}, onConnected, () => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return <></>;

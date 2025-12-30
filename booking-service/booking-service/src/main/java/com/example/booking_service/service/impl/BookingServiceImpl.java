@@ -2,9 +2,11 @@ package com.example.booking_service.service.impl;
 
 import com.example.booking_service.config.AppointmentClient;
 import com.example.booking_service.config.AuthClient;
+import com.example.booking_service.config.NotificationEventProducer;
 import com.example.booking_service.config.PaymentClient;
 import com.example.booking_service.dto.request.BookingCheckRequest;
 import com.example.booking_service.dto.request.BookingRequest;
+import com.example.booking_service.dto.request.NotificationEvent;
 import com.example.booking_service.dto.request.PaymentCallbackRequest;
 import com.example.booking_service.dto.response.*;
 import com.example.booking_service.entity.*;
@@ -20,6 +22,7 @@ import com.example.booking_service.service.BookingService;
 import com.example.booking_service.service.FcmV1Service;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -52,6 +55,11 @@ public class BookingServiceImpl implements BookingService {
     private final PaymentClient paymentClient;
     private final BookingMapper bookingMapper;
     private final RedissonClient redissonClient;
+    private final NotificationEventProducer notificationEventProducer;
+
+    @Value("${fcm.default-token}")
+    private String fcmToken;
+
 
     @Override
     @Transactional
@@ -253,7 +261,54 @@ public class BookingServiceImpl implements BookingService {
 //    }
 
 
-    // CALLBACK
+//    // CALLBACK
+//    @Override
+//    public void updatePaymentStatus(PaymentCallbackRequest req) {
+//
+//        Booking booking = bookingRepository.findById(req.getBookingId())
+//                .orElseThrow(() -> new RuntimeException("Booking not found"));
+//
+//        BookingPayment payment = bookingPaymentRepository.findByBookingId(req.getBookingId());
+//        payment.setResponseCode(req.getResponseCode());
+//        bookingPaymentRepository.save(payment);
+//
+//        BookingTimeline timeline = bookingTimelineRepository.findByBookingId(req.getBookingId());
+//        timeline.setPaymentTime(new Date());
+//        bookingTimelineRepository.save(timeline);
+//
+//        if ("00".equals(req.getResponseCode())) {
+//            booking.setStatus(BookingStatus.PAID);
+//
+//            // ======== PUSH FCM ========
+//            String token = "epqtPpC1adD1m5rv0xNRpy:APA91bEK-eiggoOL1qbll2jw-kyv3a6QJEW60K6xPAVdtHwJTHSqIqap175JIlSkulPjRAZ_RfRMc8zN2uWi3x7o627hOUDZlr1ejmfIh-3-Nz8RShs5qNE";
+//            token = token.trim();
+//            System.out.println("TOKEN=[" + token + "]");
+//            String title = "Khách đặt lịch thành công";
+//            String body = "Khách hàng đã đặt lịch thành công vào ngày "
+//                    + booking.getBookingDate()
+//                    + " từ " + booking.getStartTime()
+//                    + " đến " + booking.getEndTime()
+//                    + ". Tổng tiền: " + booking.getTotalFinalPrice() + " VNĐ";
+//
+//            String img = "";
+//
+//            fcmV1Service.sendNotification(token, title, body, img);
+//            } else {
+//            booking.setStatus(BookingStatus.FAILED);
+//
+//            // ===== HOÀN SLOT =====
+//            String releaseUrl =
+//                    "http://appointment-service/api/schedules/slots/"
+//                            + booking.getSlotId()
+//                            + "/release";
+//
+//            restTemplate.put(releaseUrl, null);
+//        }
+//
+//        bookingRepository.save(booking);
+//    }
+
+    //callback
     @Override
     public void updatePaymentStatus(PaymentCallbackRequest req) {
 
@@ -271,24 +326,22 @@ public class BookingServiceImpl implements BookingService {
         if ("00".equals(req.getResponseCode())) {
             booking.setStatus(BookingStatus.PAID);
 
-            // ======== PUSH FCM ========
-            String token = "epqtPpC1adD1m5rv0xNRpy:APA91bEK-eiggoOL1qbll2jw-kyv3a6QJEW60K6xPAVdtHwJTHSqIqap175JIlSkulPjRAZ_RfRMc8zN2uWi3x7o627hOUDZlr1ejmfIh-3-Nz8RShs5qNE";
-            token = token.trim();
-            System.out.println("TOKEN=[" + token + "]");
-            String title = "Khách đặt lịch thành công";
-            String body = "Khách hàng đã đặt lịch thành công vào ngày "
-                    + booking.getBookingDate()
-                    + " từ " + booking.getStartTime()
-                    + " đến " + booking.getEndTime()
-                    + ". Tổng tiền: " + booking.getTotalFinalPrice() + " VNĐ";
+            NotificationEvent event = NotificationEvent.builder()
+                    .type("BOOKING_PAID")
+                    .title("Khách đặt lịch thành công")
+                    .body("Khách đã đặt lịch ngày "
+                            + booking.getBookingDate()
+                            + " từ " + booking.getStartTime()
+                            + " đến " + booking.getEndTime()
+                            + ". Tổng tiền: " + booking.getTotalFinalPrice() + " VNĐ")
+                    .image("")
+                    .fcmToken(fcmToken)
+                    .build();
 
-            String img = "";
-
-            fcmV1Service.sendNotification(token, title, body, img);
-            } else {
+            notificationEventProducer.send(event);
+        } else {
             booking.setStatus(BookingStatus.FAILED);
 
-            // ===== HOÀN SLOT =====
             String releaseUrl =
                     "http://appointment-service/api/schedules/slots/"
                             + booking.getSlotId()

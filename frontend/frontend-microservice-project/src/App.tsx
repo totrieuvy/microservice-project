@@ -3,14 +3,14 @@ import { Suspense, lazy } from "react";
 import ManageAccount from "./pages/admin/account/ManageAccount";
 import ManageComboServices from "./pages/admin/combo-services/ManageComboServices";
 
-const HomepageLayout = lazy(() => import("./layouts/homepage/homepageLayout"));
+const HomepageLayout = lazy(() => import("./layouts/homepage/HomepageLayout"));
+const ProfileLayout = lazy(() => import("./layouts/profile/ProfileLayout"));
 const Homepage = lazy(() => import("./components/homepage/homepage"));
-const Login = lazy(() => import("./pages/authentication/login/login"));
-const ProfilePage = lazy(() => import("./layouts/profile/profileLayout"));
-const Register = lazy(() => import("./pages/authentication/register/register"));
-const VerifyOtp = lazy(() => import("./pages/authentication/verify-otp/verifyOtp"));
-const Information = lazy(() => import("./pages/information/information"));
-const Hamster = lazy(() => import("./pages/hamster/hamster"));
+const Login = lazy(() => import("./pages/authentication/login/Login"));
+const Register = lazy(() => import("./pages/authentication/register/Register"));
+const VerifyOtp = lazy(() => import("./pages/authentication/verify-otp/VerifyOtp"));
+const Information = lazy(() => import("./pages/information/Information"));
+const Hamster = lazy(() => import("./pages/hamster/Hamster"));
 const Sidebar = lazy(() => import("./components/sidebar/Sidebar"));
 const GroomingService = lazy(() => import("./pages/grooming/grooming-page/GroomingService"));
 const GroomingDetail = lazy(() => import("./pages/grooming/grooming-page-detail/GroomingDetail"));
@@ -48,7 +48,15 @@ const decodeTokenSafe = (rawToken: string | null) => {
 /* --------------------------------------------------------
  *  FIX 2: Support all role formats (KEYCLOAK + CUSTOM)
  * ------------------------------------------------------*/
-const getRolesFromTokenPayload = (payload): string[] => {
+interface TokenPayload {
+  realm_access?: { roles?: string[] };
+  role?: string;
+  ROLE?: string;
+  roles?: string[];
+  authorities?: string[];
+}
+
+const getRolesFromTokenPayload = (payload: TokenPayload | null): string[] => {
   if (!payload) return [];
 
   // Keycloak format
@@ -164,7 +172,7 @@ const App = () => {
               path: "information",
               element: (
                 <Suspense fallback={<div>Loading...</div>}>
-                  <ProfilePage />
+                  <ProfileLayout />
                 </Suspense>
               ),
               children: [
@@ -183,7 +191,7 @@ const App = () => {
               path: "booking-history",
               element: (
                 <Suspense fallback={<div>Loading...</div>}>
-                  <ProfilePage />
+                  <ProfileLayout />
                 </Suspense>
               ),
               children: [
@@ -202,7 +210,7 @@ const App = () => {
               path: "booking-detail/:id",
               element: (
                 <Suspense fallback={<div>Loading...</div>}>
-                  <ProfilePage />
+                  <ProfileLayout />
                 </Suspense>
               ),
               children: [
@@ -221,7 +229,7 @@ const App = () => {
               path: "hamsters",
               element: (
                 <Suspense fallback={<div>Loading...</div>}>
-                  <ProfilePage />
+                  <ProfileLayout />
                 </Suspense>
               ),
               children: [

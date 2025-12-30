@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import api from "../../../config/axios";
-import "./login.scss";
+import "./Login.scss";
 import { toast } from "react-toastify";
 import { Link, useNavigate } from "react-router-dom";
 
@@ -46,6 +46,7 @@ const decodeTokenSafe = (rawToken: string | null) => {
 /**
  * Lấy roles linh hoạt từ payload
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const getRolesFromPayload = (payload: any): string[] => {
   if (!payload) return [];
 
@@ -58,7 +59,7 @@ const getRolesFromPayload = (payload: any): string[] => {
 
   // roles can be array or comma-separated string
   if (Array.isArray(payload.roles)) return payload.roles;
-  if (typeof payload.roles === "string") return payload.roles.split(",").map((r) => r.trim());
+  if (typeof payload.roles === "string") return payload.roles.split(",").map((r: string) => r.trim());
 
   // authorities style
   if (Array.isArray(payload.authorities)) return payload.authorities;
@@ -117,6 +118,7 @@ function Login() {
           navigate("/");
         }
       }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       console.error(error);
       // Thông báo lỗi chung

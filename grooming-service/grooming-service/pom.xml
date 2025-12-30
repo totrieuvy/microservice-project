@@ -50,7 +50,20 @@
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
 
-		<!-- Validation -->
+<!--        <dependency>-->
+<!--            <groupId>com.example</groupId>-->
+<!--            <artifactId>common-websocket</artifactId>-->
+<!--            <version>0.0.1</version>-->
+<!--        </dependency>-->
+
+        <dependency>
+            <groupId>com.example.common</groupId>
+            <artifactId>common-websocket</artifactId>
+            <version>0.0.1</version>
+        </dependency>
+
+
+        <!-- Validation -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-validation</artifactId>
